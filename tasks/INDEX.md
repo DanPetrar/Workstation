@@ -8,7 +8,7 @@ _Maintained by Pi Claude. Updated after every task completion._
 
 | ID | Title | Status | Result |
 |----|-------|--------|--------|
-| W-001 | Inventory current tools and environment | **Pending** | — |
+| W-001 | Inventory current tools and environment | **Done** | Flutter/Java/adb not installed; data stack (Influx, Grafana, Mosquitto) already running; Pi reachable |
 
 ## Infrastructure stack (I-)
 
