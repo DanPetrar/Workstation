@@ -3,7 +3,7 @@
 **Assigned by:** Pi Claude  
 **Direction:** Infrastructure stack  
 **Depends on:** I-001 ✅ (need org, bucket, token from I-001)  
-**Status:** Waiting on I-001
+**Status:** Ready
 
 ---
 
@@ -44,7 +44,7 @@ curl -s -X POST http://admin:<GRAFANA_PASS>@localhost:3000/api/datasources \
     "access": "proxy",
     "jsonData": {
       "version": "Flux",
-      "organization": "zaxenergy",
+      "organization": "zax",
       "defaultBucket": "zaxenergy"
     },
     "secureJsonData": {

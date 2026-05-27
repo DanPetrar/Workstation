@@ -3,7 +3,7 @@
 **Assigned by:** Pi Claude  
 **Direction:** Infrastructure stack  
 **Depends on:** I-001 ✅ (need token, org, bucket)  
-**Status:** Waiting on I-001
+**Status:** Ready
 
 ---
 
@@ -17,7 +17,7 @@ Write a Python service that subscribes to the Pi's MQTT broker, decodes ZaxEnerg
 
 **Pi MQTT broker:** `192.168.110.225:1883` (anonymous access, no credentials)  
 **Topics to subscribe:** `zax_E47730/#` and `zax_73DA28/#` (Unit A and Unit C)  
-**InfluxDB:** `http://localhost:8086`, org `zaxenergy`, bucket `zaxenergy`  
+**InfluxDB:** `http://localhost:8086`, org `zax`, bucket `zaxenergy`  
 **Token:** from `setup/I-001-influxdb.md`
 
 ### Binary payload formats
@@ -98,7 +98,7 @@ BROKER_PORT = 1883
 
 INFLUX_URL    = "http://localhost:8086"
 INFLUX_TOKEN  = "REPLACE_WITH_TOKEN_FROM_I-001"
-INFLUX_ORG    = "zaxenergy"
+INFLUX_ORG    = "zax"
 INFLUX_BUCKET = "zaxenergy"
 
 UNITS = {
@@ -224,7 +224,7 @@ After the service starts, wait 90 seconds (at least one `/sec` and one possible 
 ```bash
 TOKEN=$(grep token setup/I-001-influxdb.md | awk '{print $2}')
 
-influx query --org zaxenergy --token $TOKEN \
+influx query --org zax --token $TOKEN \
   'from(bucket:"zaxenergy")
    |> range(start: -5m)
    |> filter(fn: (r) => r._measurement == "power")

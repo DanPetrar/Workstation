@@ -14,9 +14,9 @@ _Maintained by Pi Claude. Updated after every task completion._
 
 | ID | Title | Status | Result |
 |----|-------|--------|--------|
-| I-001 | Verify and configure InfluxDB for ZaxEnergy | **Done** | v2.7.11, org `zax`, bucket `zaxenergy`, scoped token created, write/read verified |
-| I-002 | Verify and configure Grafana → InfluxDB connection | Waiting on I-001 | — |
-| I-003 | Python MQTT→InfluxDB parser + systemd service | Waiting on I-001 | — |
+| I-001 | Verify and configure InfluxDB for ZaxEnergy | ✅ Done | v2.7.11, org `zax`, bucket `zaxenergy`, scoped token created, write/read verified |
+| I-002 | Verify and configure Grafana → InfluxDB connection | **Ready** | — |
+| I-003 | Python MQTT→InfluxDB parser + systemd service | **Ready** | — |
 | I-004 | Build Grafana dashboards (power + energy) | Waiting on I-002 + I-003 | — |
 
 ## Android app — see ZaxEnergySurvey/android/tasks/
