@@ -31,7 +31,7 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 | pip 3 | 26.1.1 | ✅ installed |
 | Node.js | 20.20.2 | ✅ installed |
 | npm | 10.8.2 | ✅ installed |
-| Java | not found | ❌ not installed |
+| Java | OpenJDK 17.0.18 | ✅ installed |
 
 ---
 
@@ -47,9 +47,9 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 
 | Tool | Version | Status |
 |------|---------|--------|
-| Flutter SDK | not found | ❌ not installed |
-| Android Studio | not found | ❌ not installed |
-| Android SDK / adb | not found | ❌ not installed |
+| Flutter SDK | 3.44.0 (stable) | ✅ installed — `/opt/flutter` |
+| Android Studio | not installed | ➖ not needed (CLI tools only) |
+| Android SDK / adb | platform-tools 37.0.0, API 36 | ✅ installed — `~/Android/Sdk` |
 
 ---
 

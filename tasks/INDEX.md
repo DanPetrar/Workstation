@@ -23,4 +23,4 @@ _Maintained by Pi Claude. Updated after every task completion._
 
 | ID | Title | Status |
 |----|-------|--------|
-| ANDROID-001 | Setup Flutter + Java environment | Not started |
+| ANDROID-001 | Setup Flutter + Java environment | ✅ Done | Flutter 3.44.0 + Java 17 + Android SDK 36; debug APK build verified |

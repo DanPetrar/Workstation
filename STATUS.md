@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-001 | Ready | Workstation |
+| — | — | Done — awaiting Pi review |
 
 ## Blocking / notes
 
@@ -19,6 +19,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-001 | Flutter 3.44.0 + Java 17 + Android SDK 36; debug APK build ✓ (140 MB) |
 | I-004 | Power (6 panels, unit dropdown) + Energy (2 panels) dashboards live |
 | I-003 | zax-parser.service active; Unit_A + Unit_C flowing into InfluxDB |
 | I-002 | Grafana datasource `ZaxEnergy-InfluxDB` (UID `ffnbf64waxe68a`) connected |
