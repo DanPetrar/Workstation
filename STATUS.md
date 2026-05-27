@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-003 | Ready | Workstation |
+| — | — | Done — awaiting Pi review |
 
 ## Blocking / notes
 
@@ -19,6 +19,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-003 | Live dashboard polling /api/data every 2 s; API shape corrected from spec |
 | ANDROID-002 | Unit list + nav skeleton; APK ✅, analyze clean; committed to ZaxEnergySurvey |
 | ANDROID-001 | Flutter 3.44.0 + Java 17.0.18 + Android SDK API 36; debug APK ✅ |
 | I-004 | Power (6 panels) + Energy (2 panels) dashboards live at http://192.168.110.11:3000 |
