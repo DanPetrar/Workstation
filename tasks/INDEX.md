@@ -30,3 +30,9 @@ _Maintained by Pi Claude. Updated after every task completion._
 | ANDROID-005 | Headless Android emulator | ✅ Done | KVM ok; AVD `zax_test` (Nexus 4, API 36); clean screenshot, no ANR after profile fix |
 | ANDROID-006 | Live dashboard screenshot + subtitle fix | ✅ Done | Subtitle fix (mqtt_topic removed); live dashboard screenshot: Unit C, 240.40 V, 50.01 Hz |
 | ANDROID-007 | Config screen screenshot for demo doc | ✅ Done | Config screen: Unit C fields loaded (ZaxEnergy, fw 1.1.5, MQTT on, broker 192.168.110.225) |
+
+## Housekeeping
+
+| ID | Title | Status | Result |
+|----|-------|--------|--------|
+| SESSION-CLOSE-001 | Verify services + clean repos before session end | **Ready** | — |
