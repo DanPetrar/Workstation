@@ -1,6 +1,6 @@
 # ANDROID-005 — Headless Android emulator
 
-_Completed: 2026-05-27_
+_Completed: 2026-05-27 — AVD recreated with Nexus 4 profile, ANR resolved (2026-05-27)_
 
 ---
 
@@ -66,16 +66,11 @@ Unit C is reachable from the emulator because the Android emulator bridges throu
 
 ---
 
-## Known issue — System UI ANR dialog
+## ANR fix applied
 
-The Android System UI consistently fires an ANR ("System UI isn't responding") on this hardware under swiftshader rendering. This is caused by the i3 CPU being too slow for software-rendered OpenGL at Pixel 6 resolution (1080×2400).
-
-**The ANR does not affect the Flutter app** — the app code, HTTP polling, and navigation all work correctly. The ANR dialog appears in front of the app in screenshots but the app is fully functional behind it.
-
-**Mitigation options for Pi to decide:**
-1. Use a lower-resolution device profile when recreating the AVD (e.g. `Nexus 4` instead of `pixel_6`)
-2. Accept the ANR as a cosmetic issue for screenshot tasks
-3. Use a physical device instead of the emulator for screenshot evidence
+Original AVD used Pixel 6 (1080×2400) which caused System UI ANR under swiftshader on the i3.
+AVD recreated with **Nexus 4** profile (768×1280) — ANR no longer occurs.
+Boot time: ~94 s. Clean screenshot captured with no dialogs.
 
 ---
 

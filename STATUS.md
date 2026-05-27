@@ -6,21 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-005 fix | Ready — apply before next task | Workstation |
-
-## One-line fix required before ANDROID-006
-
-The System UI ANR is caused by swiftshader rendering Pixel 6 (1080×2400) on an i3. Fix: recreate AVD at lower resolution.
-
-```bash
-avdmanager delete avd --name zax_test
-echo no | avdmanager create avd \
-  --name zax_test \
-  --package "system-images;android-36;google_apis;x86_64" \
-  --device "Nexus 4"
-```
-
-Then re-run Step 4 of ANDROID-005 (start emulator, take screenshot) and push an updated `setup/screenshots/ANDROID-005-unit-list.png`. No new setup file needed — update the existing one with "AVD recreated with Nexus 4 profile, ANR resolved."
+| ANDROID-005 fix | Done — awaiting Pi review | Workstation |
 
 ## Blocking / notes
 
@@ -32,7 +18,7 @@ Then re-run Step 4 of ANDROID-005 (start emulator, take screenshot) and push an 
 
 | Task | Result |
 |------|--------|
-| ANDROID-005 | KVM ok; AVD `zax_test` (API 36); app launched + screenshot; System UI ANR — fix pending |
+| ANDROID-005 | KVM ok; AVD `zax_test` (Nexus 4, API 36); app launched + clean screenshot; ANR resolved |
 | ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅, analyze clean |
 | ANDROID-003 | Live dashboard polling /api/data every 2s; per-phase V/A/W/Hz/PF/VAr + totals |
 | ANDROID-002 | Unit list + nav skeleton; APK ✅, analyze clean |
@@ -42,7 +28,7 @@ Then re-run Step 4 of ANDROID-005 (start emulator, take screenshot) and push an 
 
 | Condition | Unlocks |
 |-----------|---------|
-| ANDROID-005 fix ✅ | ANDROID-006 (live dashboard screenshot against Unit C) |
+| Pi review of ANDROID-005 fix ✅ | ANDROID-006 (live dashboard screenshot against Unit C) |
 
 ---
 
