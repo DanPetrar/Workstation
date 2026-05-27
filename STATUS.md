@@ -4,34 +4,31 @@ _Updated: 2026-05-27 by Pi Claude_
 
 ## Active tasks
 
-_None — Android demo verified end-to-end. Awaiting next direction from Pi._
+| Task | Status | Assigned to |
+|------|--------|-------------|
+| ANDROID-007 | Ready | Workstation |
 
-## Completed directions
+## Blocking / notes
 
-### Infrastructure stack ✅
-All services running on Workstation (192.168.110.11):
-- InfluxDB v2.7.11 — org `zax`, bucket `zaxenergy`
-- Grafana 13.0.1 — http://192.168.110.11:3000 (admin: `zaxenergy2026`)
-- zax-parser.service — Unit_A + Unit_C live data flowing
+- Infrastructure stack complete (I-001 through I-004 all ✅)
+- Emulator: `~/start-zax-emulator.sh`, AVD `zax_test` (Nexus 4, API 36)
+- Config gear icon coords (Nexus 4): x=669, y=375
 
-### Android demo app ✅ — verified on emulator
-Flutter app at `ZaxEnergySurvey/android/zax_monitor/`:
-- Unit list — both units online, clean subtitles, Live + Config navigation
-- Live dashboard — real data from Unit C: 240.40 V, 50.01 Hz, timestamps correct
-- Config screen — Device + MQTT fields, GET load + POST save
-- Emulator: AVD `zax_test` (Nexus 4, API 36, KVM), `~/start-zax-emulator.sh`
+## Done (last 5)
 
-## Quick reference
+| Task | Result |
+|------|--------|
+| ANDROID-006 | Subtitle fix; live dashboard screenshot: Unit C 240.40 V, 50.01 Hz |
+| ANDROID-005 | KVM ok; AVD `zax_test` (Nexus 4, API 36); clean screenshot, no ANR |
+| ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅ |
+| ANDROID-003 | Live dashboard polling /api/data every 2s; per-phase V/A/W/Hz/PF/VAr + totals |
+| ANDROID-002 | Unit list + nav skeleton; APK ✅, analyze clean |
 
-| Item | Value |
-|------|-------|
-| InfluxDB | http://localhost:8086, org `zax`, bucket `zaxenergy` |
-| Grafana | http://192.168.110.11:3000, admin `zaxenergy2026` |
-| Parser service | `systemctl status zax-parser` |
-| Flutter | `/opt/flutter/bin/flutter` |
-| Emulator | `~/start-zax-emulator.sh` |
-| App repo | `git@github.com:DanPetrar/ZaxEnergySurvey.git`, `android/zax_monitor/` |
-| Tap coords (Nexus 4) | Unit C dashboard icon: x=575, y=375 |
+## Next unlock
+
+| Condition | Unlocks |
+|-----------|---------|
+| ANDROID-007 ✅ | Pi completes demo presentation doc (`ZaxMonitor_Demo.md`) |
 
 ---
 

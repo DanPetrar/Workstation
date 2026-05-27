@@ -29,3 +29,4 @@ _Maintained by Pi Claude. Updated after every task completion._
 | ANDROID-004 | Config screen — read/write /api/config | ✅ Done | Loads /api/config, edits Device + MQTT fields, POSTs on save; analyze clean, APK built |
 | ANDROID-005 | Headless Android emulator | ✅ Done | KVM ok; AVD `zax_test` (Nexus 4, API 36); clean screenshot, no ANR after profile fix |
 | ANDROID-006 | Live dashboard screenshot + subtitle fix | ✅ Done | Subtitle fix (mqtt_topic removed); live dashboard screenshot: Unit C, 240.40 V, 50.01 Hz |
+| ANDROID-007 | Config screen screenshot for demo doc | **Ready** | — |
