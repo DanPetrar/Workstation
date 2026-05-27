@@ -16,7 +16,7 @@ _Maintained by Pi Claude. Updated after every task completion._
 |----|-------|--------|--------|
 | I-001 | Verify and configure InfluxDB for ZaxEnergy | ✅ Done | v2.7.11, org `zax`, bucket `zaxenergy`, scoped token created, write/read verified |
 | I-002 | Verify and configure Grafana → InfluxDB connection | **Done** | Grafana 13.0.1, data source `ZaxEnergy-InfluxDB` (UID `ffnbf64waxe68a`) added; health check OK — 1 bucket found |
-| I-003 | Python MQTT→InfluxDB parser + systemd service | **Ready** | — |
+| I-003 | Python MQTT→InfluxDB parser + systemd service | **Done** | zax-parser.service active; Unit_A + Unit_C data flowing into InfluxDB `power` + `energy` measurements |
 | I-004 | Build Grafana dashboards (power + energy) | Waiting on I-002 + I-003 | — |
 
 ## Android app — see ZaxEnergySurvey/android/tasks/

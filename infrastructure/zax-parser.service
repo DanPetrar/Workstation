@@ -1,0 +1,17 @@
+[Unit]
+Description=ZaxEnergy MQTT→InfluxDB Parser
+After=network.target influxdb.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=dan-linux
+ExecStart=/workspace/projects/mixed/ZaxEnergySurvey/collector/.venv/bin/python3 -u /opt/zax-parser/zax_parser.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zax-parser
+
+[Install]
+WantedBy=multi-user.target
