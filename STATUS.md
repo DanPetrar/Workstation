@@ -4,32 +4,34 @@ _Updated: 2026-05-27 by Pi Claude_
 
 ## Active tasks
 
-| Task | Status | Assigned to |
-|------|--------|-------------|
-| ANDROID-007 | Done — awaiting Pi review | Workstation |
+_None — all directions complete. Awaiting next direction from Pi._
 
-## Blocking / notes
+## Completed directions
 
-- Infrastructure stack complete (I-001 through I-004 all ✅)
-- Emulator: `~/start-zax-emulator.sh`, AVD `zax_test` (Nexus 4, API 36)
-- Config gear icon coords (Nexus 4): x=669, y=375
+### Infrastructure stack ✅
+All services running on Workstation (192.168.110.11):
+- InfluxDB v2.7.11 — org `zax`, bucket `zaxenergy`
+- Grafana 13.0.1 — http://192.168.110.11:3000 (admin: `zaxenergy2026`)
+- zax-parser.service — Unit_A + Unit_C live data flowing
 
-## Done (last 5)
+### Android demo app ✅ — verified + documented
+Flutter app at `ZaxEnergySurvey/android/zax_monitor/`:
+- Unit list, live dashboard, config screen — all working against live hardware
+- Emulator: AVD `zax_test` (Nexus 4, API 36, KVM), `~/start-zax-emulator.sh`
+- Presentation: `ZaxEnergySurvey/android/ZaxMonitor_Demo.md` (all 3 screenshots)
 
-| Task | Result |
-|------|--------|
-| ANDROID-007 | Config screen: Unit C fields loaded (ZaxEnergy, fw 1.1.5, MQTT on, broker 192.168.110.225) |
-| ANDROID-006 | Subtitle fix; live dashboard screenshot: Unit C 240.40 V, 50.01 Hz |
-| ANDROID-005 | KVM ok; AVD `zax_test` (Nexus 4, API 36); clean screenshot, no ANR |
-| ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅ |
-| ANDROID-003 | Live dashboard polling /api/data every 2s; per-phase V/A/W/Hz/PF/VAr + totals |
-| ANDROID-002 | Unit list + nav skeleton; APK ✅, analyze clean |
+## Quick reference
 
-## Next unlock
-
-| Condition | Unlocks |
-|-----------|---------|
-| ANDROID-007 ✅ | Pi completes demo presentation doc (`ZaxMonitor_Demo.md`) |
+| Item | Value |
+|------|-------|
+| InfluxDB | http://localhost:8086, org `zax`, bucket `zaxenergy` |
+| Grafana | http://192.168.110.11:3000, admin `zaxenergy2026` |
+| Parser service | `systemctl status zax-parser` |
+| Flutter | `/opt/flutter/bin/flutter` |
+| Emulator | `~/start-zax-emulator.sh` |
+| App repo | `git@github.com:DanPetrar/ZaxEnergySurvey.git`, `android/zax_monitor/` |
+| Demo doc | `ZaxEnergySurvey/android/ZaxMonitor_Demo.md` |
+| Tap coords (Nexus 4) | Unit C dashboard: x=575, y=375 — Config: x=669, y=375 |
 
 ---
 
@@ -38,4 +40,4 @@ _Updated: 2026-05-27 by Pi Claude_
 - **Start of session:** read this file first — no need to load full task specs
 - **Task done:** update this file + `tasks/INDEX.md` + write `setup/XXX.md` in one commit; set status to `Done — awaiting Pi review`
 - **Pi review:** reads `setup/XXX.md`, fixes issues, updates status to `Ready` for next task
-- **User handoff:** short message only — "ANDROID-007 ready", etc.
+- **User handoff:** short message only — "ANDROID-008 ready", etc.
