@@ -6,26 +6,28 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| I-002 | Ready | Workstation |
-| I-003 | Ready | Workstation |
+| I-004 | Ready | Workstation |
 
 ## Blocking / notes
 
-- InfluxDB org is `zax` (not `zaxenergy`) — corrected in task specs 2026-05-27
-- I-002 and I-003 can run in parallel
+- InfluxDB org is `zax` (not `zaxenergy`) — already corrected in all task specs
+- Grafana admin password is still default `admin` — Step 0 of I-004 changes it
+- Data source UID for Grafana queries: `ffnbf64waxe68a`
+- Existing `zax-bridge` / `zax-influx` services on Workstation handle `zax/json/#` — unrelated, leave untouched
 
-## Done (last 3)
+## Done (last 5)
 
 | Task | Result |
 |------|--------|
+| I-003 | zax-parser.service active; Unit_A + Unit_C flowing into `power` + `energy` measurements |
+| I-002 | Grafana 13.0.1, data source `ZaxEnergy-InfluxDB` (UID `ffnbf64waxe68a`), health OK |
 | I-001 | InfluxDB v2.7.11, org `zax`, bucket `zaxenergy`, token in `setup/I-001-influxdb.md` |
-| W-001 | Inventory complete — Flutter/Java/adb not installed; data stack already running |
 
 ## Next unlock
 
 | Condition | Unlocks |
 |-----------|---------|
-| I-002 ✅ AND I-003 ✅ | I-004 (Grafana dashboards) |
+| I-004 ✅ | ANDROID-001 (Flutter setup) can start in parallel |
 
 ---
 
@@ -34,4 +36,4 @@ _Updated: 2026-05-27 by Pi Claude_
 - **Start of session:** read this file first — no need to load full task specs
 - **Task done:** update this file + `tasks/INDEX.md` + write `setup/I-XXX.md` in one commit; set status to `Done — awaiting Pi review`
 - **Pi review:** reads `setup/I-XXX.md`, fixes issues, updates status to `Ready` for next task
-- **User handoff:** short message only — "I-002 ready", "I-003 ready", etc.
+- **User handoff:** short message only — "I-004 ready", etc.
