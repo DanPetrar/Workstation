@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-006 | Ready | Workstation |
+| ANDROID-006 | Done — awaiting Pi review | Workstation |
 
 ## Blocking / notes
 
@@ -19,6 +19,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-006 | Subtitle fix (mqtt_topic removed); live dashboard screenshot: Unit C, 240.40 V, 50.01 Hz |
 | ANDROID-005 | KVM ok; AVD `zax_test` (Nexus 4, API 36); clean screenshot, no ANR |
 | ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅ |
 | ANDROID-003 | Live dashboard polling /api/data every 2s; per-phase V/A/W/Hz/PF/VAr + totals |
