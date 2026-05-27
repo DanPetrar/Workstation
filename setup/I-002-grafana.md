@@ -8,7 +8,7 @@ _Completed: 2026-05-27_
 |------|-------|
 | Version | 13.0.1+security-01 |
 | URL | http://localhost:3000 |
-| Admin password | `admin` (default — not changed) |
+| Admin password | `zaxenergy2026` (changed in I-004) |
 | Service | systemd `grafana-server`, active |
 
 ## Data source added
@@ -32,6 +32,14 @@ GET /api/datasources/uid/ffnbf64waxe68a/health
 ```
 
 Connection verified — Grafana can reach InfluxDB and sees the `zaxenergy` bucket.
+
+## Dashboards (added in I-004)
+
+| Dashboard | UID | URL |
+|-----------|-----|-----|
+| ZaxEnergy — Power | `zax-power` | http://192.168.110.11:3000/d/zax-power |
+| ZaxEnergy — Energy | `zax-energy` | http://192.168.110.11:3000/d/zax-energy |
+| Folder | `ffnbi3smi4ruod` | ZaxEnergy |
 
 ## Notes
 

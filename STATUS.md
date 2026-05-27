@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| I-004 | Ready | Workstation |
+| — | — | Done — awaiting Pi review |
 
 ## Blocking / notes
 
@@ -19,6 +19,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| I-004 | Power + Energy dashboards live at http://192.168.110.11:3000; admin password changed |
 | I-003 | zax-parser.service active; Unit_A + Unit_C flowing into `power` + `energy` measurements |
 | I-002 | Grafana 13.0.1, data source `ZaxEnergy-InfluxDB` (UID `ffnbf64waxe68a`), health OK |
 | I-001 | InfluxDB v2.7.11, org `zax`, bucket `zaxenergy`, token in `setup/I-001-influxdb.md` |

@@ -58,7 +58,7 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 | Tool | Version | Service status |
 |------|---------|----------------|
 | InfluxDB | v2.7.11 (server) / dev CLI | ✅ active — org `zax`, bucket `zaxenergy` |
-| Grafana | 13.0.1+security-01 | ✅ active — InfluxDB data source configured |
+| Grafana | 13.0.1+security-01 | ✅ active — InfluxDB data source + Power & Energy dashboards |
 | Mosquitto (MQTT) | 2.0.22 | ✅ active |
 | zax-parser | — | ✅ active — MQTT→InfluxDB, Unit_A + Unit_C |
 
