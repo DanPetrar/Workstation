@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-002 | Ready | Workstation |
+| — | — | Done — awaiting Pi review |
 
 ## Blocking / notes
 
@@ -20,6 +20,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-002 | Unit list + nav skeleton; APK built, flutter analyze clean |
 | ANDROID-001 | Flutter 3.44.0 + Java 17.0.18 + Android SDK API 36; debug APK ✅ |
 | I-004 | Power (6 panels) + Energy (2 panels) dashboards live at http://192.168.110.11:3000 |
 | I-003 | zax-parser.service active; Unit_A + Unit_C flowing into InfluxDB |
