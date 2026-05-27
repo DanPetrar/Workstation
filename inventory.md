@@ -57,7 +57,7 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 
 | Tool | Version | Service status |
 |------|---------|----------------|
-| InfluxDB CLI | dev (2024-04-16 build) | ✅ active |
+| InfluxDB | v2.7.11 (server) / dev CLI | ✅ active — org `zax`, bucket `zaxenergy` |
 | Grafana | 13.0.1+security-01 | ✅ active |
 | Mosquitto (MQTT) | 2.0.22 | ✅ active |
 
