@@ -61,6 +61,7 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 | Grafana | 13.0.1+security-01 | ✅ active — InfluxDB data source + Power & Energy dashboards |
 | Mosquitto (MQTT) | 2.0.22 | ✅ active |
 | zax-parser | — | ✅ active — MQTT→InfluxDB, Unit_A + Unit_C |
+| Android emulator | API 36, google_apis x86_64 | ✅ AVD `zax_test` — start with `~/start-zax-emulator.sh` |
 
 ---
 

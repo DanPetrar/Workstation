@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-005 | Ready | Workstation |
+| — | — | Done — awaiting Pi review |
 
 ## Blocking / notes
 
@@ -18,6 +18,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-005 | KVM ok; AVD zax_test (API 36); app launched + screenshot; System UI ANR on i3+swiftshader |
 | ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅, analyze clean |
 | ANDROID-003 | Live dashboard polling /api/data every 2s; per-phase V/A/W/Hz/PF/VAr + totals |
 | ANDROID-002 | Unit list + nav skeleton; APK ✅, analyze clean |
