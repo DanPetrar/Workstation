@@ -25,3 +25,4 @@ _Maintained by Pi Claude. Updated after every task completion._
 |----|-------|--------|--------|
 | ANDROID-001 | Setup Flutter + Java environment | ✅ Done | Flutter 3.44.0 + Java 17 + Android SDK 36; debug APK build verified |
 | ANDROID-002 | Flutter app scaffold — unit list + nav skeleton | ✅ Done | Unit list screen with online/offline check; Live + Config nav skeletons; APK built, analyze clean |
+| ANDROID-003 | Live dashboard screen — /api/data polling | **Ready** | — |
