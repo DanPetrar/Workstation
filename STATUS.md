@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-007 | Ready | Workstation |
+| ANDROID-007 | Done — awaiting Pi review | Workstation |
 
 ## Blocking / notes
 
@@ -18,6 +18,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-007 | Config screen: Unit C fields loaded (ZaxEnergy, fw 1.1.5, MQTT on, broker 192.168.110.225) |
 | ANDROID-006 | Subtitle fix; live dashboard screenshot: Unit C 240.40 V, 50.01 Hz |
 | ANDROID-005 | KVM ok; AVD `zax_test` (Nexus 4, API 36); clean screenshot, no ANR |
 | ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅ |
