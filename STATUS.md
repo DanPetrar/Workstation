@@ -6,29 +6,29 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| — | — | Done — awaiting Pi review |
+| ANDROID-001 | Ready | Workstation |
 
 ## Blocking / notes
 
-- InfluxDB org is `zax` (not `zaxenergy`) — already corrected in all task specs
-- Grafana admin password is still default `admin` — Step 0 of I-004 changes it
-- Data source UID for Grafana queries: `ffnbf64waxe68a`
-- Existing `zax-bridge` / `zax-influx` services on Workstation handle `zax/json/#` — unrelated, leave untouched
+- Infrastructure stack complete (I-001 through I-004 all ✅)
+- Grafana at http://192.168.110.11:3000 — admin: `zaxenergy2026`
+- Dashboards: http://192.168.110.11:3000/d/zax-power and /d/zax-energy
+- `grafana-image-renderer` plugin not installed — screenshots require browser
 
 ## Done (last 5)
 
 | Task | Result |
 |------|--------|
-| I-004 | Power + Energy dashboards live at http://192.168.110.11:3000; admin password changed |
-| I-003 | zax-parser.service active; Unit_A + Unit_C flowing into `power` + `energy` measurements |
-| I-002 | Grafana 13.0.1, data source `ZaxEnergy-InfluxDB` (UID `ffnbf64waxe68a`), health OK |
-| I-001 | InfluxDB v2.7.11, org `zax`, bucket `zaxenergy`, token in `setup/I-001-influxdb.md` |
+| I-004 | Power (6 panels, unit dropdown) + Energy (2 panels) dashboards live |
+| I-003 | zax-parser.service active; Unit_A + Unit_C flowing into InfluxDB |
+| I-002 | Grafana datasource `ZaxEnergy-InfluxDB` (UID `ffnbf64waxe68a`) connected |
+| I-001 | InfluxDB v2.7.11, org `zax`, bucket `zaxenergy` |
 
 ## Next unlock
 
 | Condition | Unlocks |
 |-----------|---------|
-| I-004 ✅ | ANDROID-001 (Flutter setup) can start in parallel |
+| ANDROID-001 ✅ | ANDROID-002 (Flutter project scaffold) |
 
 ---
 
@@ -37,4 +37,4 @@ _Updated: 2026-05-27 by Pi Claude_
 - **Start of session:** read this file first — no need to load full task specs
 - **Task done:** update this file + `tasks/INDEX.md` + write `setup/I-XXX.md` in one commit; set status to `Done — awaiting Pi review`
 - **Pi review:** reads `setup/I-XXX.md`, fixes issues, updates status to `Ready` for next task
-- **User handoff:** short message only — "I-004 ready", etc.
+- **User handoff:** short message only — "ANDROID-001 ready", etc.
