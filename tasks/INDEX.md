@@ -8,20 +8,19 @@ _Maintained by Pi Claude. Updated after every task completion._
 
 | ID | Title | Status | Result |
 |----|-------|--------|--------|
-| W-001 | Inventory current tools and environment | **Done** | Flutter/Java/adb not installed; data stack (Influx, Grafana, Mosquitto) already running; Pi reachable |
+| W-001 | Inventory current tools and environment | ✅ Done | Flutter/Java/adb not installed; InfluxDB+Grafana+Mosquitto already running; Pi reachable at 0.285ms |
 
 ## Infrastructure stack (I-)
 
 | ID | Title | Status | Result |
 |----|-------|--------|--------|
-| I-001 | Install and verify InfluxDB 2.x | Waiting on W-001 | — |
-| I-002 | Install and verify Grafana | Waiting on W-001 | — |
-| I-003 | Write MQTT→InfluxDB parser for ZaxEnergy payloads | Waiting on I-001 | — |
-| I-004 | Connect parser to live units, verify data in InfluxDB | Waiting on I-003 | — |
-| I-005 | Build Grafana dashboards (power + energy) | Waiting on I-004 | — |
+| I-001 | Verify and configure InfluxDB for ZaxEnergy | **Pending** | — |
+| I-002 | Verify and configure Grafana → InfluxDB connection | Waiting on I-001 | — |
+| I-003 | Python MQTT→InfluxDB parser + systemd service | Waiting on I-001 | — |
+| I-004 | Build Grafana dashboards (power + energy) | Waiting on I-002 + I-003 | — |
 
 ## Android app — see ZaxEnergySurvey/android/tasks/
 
 | ID | Title | Status |
 |----|-------|--------|
-| ANDROID-001 | Setup Flutter environment and verify | Waiting on W-001 |
+| ANDROID-001 | Setup Flutter + Java environment | Not started |
