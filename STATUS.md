@@ -6,7 +6,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Status | Assigned to |
 |------|--------|-------------|
-| ANDROID-004 | Ready | Workstation |
+| — | — | Done — awaiting Pi review |
 
 ## Blocking / notes
 
@@ -19,6 +19,7 @@ _Updated: 2026-05-27 by Pi Claude_
 
 | Task | Result |
 |------|--------|
+| ANDROID-004 | Config screen: Device + MQTT fields, GET load + POST save; APK ✅ |
 | ANDROID-003 | Live dashboard polling /api/data every 2s; per-phase V/A/W/Hz/PF/VAr + totals |
 | ANDROID-002 | Unit list + nav skeleton; APK ✅, analyze clean |
 | ANDROID-001 | Flutter 3.44.0 + Java 17.0.18 + Android SDK API 36 |
