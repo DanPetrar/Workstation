@@ -9,6 +9,7 @@ _Maintained by Pi Claude. Updated after every task completion._
 | ID | Title | Status | Result |
 |----|-------|--------|--------|
 | W-001 | Inventory current tools and environment | ✅ Done | Flutter/Java/adb not installed; InfluxDB+Grafana+Mosquitto already running; Pi reachable at 0.285ms |
+| W-002 | Fix SSH pubkey auth for the Pi session (Phase A bootstrap) | **Ready** | — |
 
 ## Infrastructure stack (I-)
 
