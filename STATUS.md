@@ -17,8 +17,9 @@ _Updated: 2026-06-02 by Pi Claude_
   - **C1 ✅** Parallel-run collector live on Workstation (pid in `/workspace/cal-data/collector.pid`), subscribed to **Pi broker .225**, writing `/workspace/cal-data/cal_data.db`. **Must keep running until C4.** Pi collector still primary.
   - **C2 ✅** Shared-window cross-check: Pi vs WS identical (259 sec rows, ΣW 345516.0, 4 min rows, Σdkwh 0.03/0.03/0.03).
   - **C3 ✅** Full Pi history merged into WS DB (idempotent, PK ts+unit); reconciled — both have cal_sec 178649 / cal_min 3029 up to snapshot boundary.
-  - **⏸️ C4 NEXT — needs user + session boundary:** re-point Unit D `mqtt_host` .225→.11, point WS collector at local broker, stop+disable Pi `cal_collector`.
-  - Then C5 (move reports+crons), C6 (InfluxDB/Grafana feed), C7 (e2e verify), C8 (decommission Pi bench).
+  - **C4 ✅ CUTOVER DONE (no data loss).** Unit D `mqtt_host` now `.11`; WS collector reads **local broker** (~1s lag); Pi `cal_collector` **inactive+disabled**. Final reconciliation: both DBs identical to Pi freeze (sec 178986 / min 3035); WS now live-ahead.
+  - **⚠️ WS collector is still a `setsid` process (pid in `/workspace/cal-data/collector.pid`), NOT yet a systemd service — won't survive a WS reboot until C5.**
+  - **Next: C5** install collector+report as systemd on WS + recreate daily-report/prune crons (remove from Pi), then C6 (InfluxDB/Grafana feed), C7 (e2e verify), C8 (decommission Pi bench: archive Pi cal_data.db; leave Pi broker for ZAX).
 
 ## Completed directions
 
