@@ -7,7 +7,13 @@ _Updated: 2026-06-02 by Pi Claude_
 **Pi→Workstation migration in progress** (runbook: `MIGRATION-pi-to-workstation.md`).
 - **Phase A — direct SSH control: ✅ COMPLETE.** Pi session reaches this machine via
   `ssh ws` (key-based, passwordless sudo). GitHub hand-off is now the fallback.
-- Next: Phase B (provision the EnergyCalibrator bench backend here), then Phase C cutover.
+- **Phase B — provision (no cutover): ✅ COMPLETE.**
+  - EnergyCalibrator cloned → `/workspace/projects/EnergyCalibrator` (HEAD `d574f98`).
+  - venv `.venv` with `paho-mqtt 2.1`, `reportlab 4.5`, `influxdb-client 1.50` (Python 3.14).
+  - DB dir `/workspace/cal-data/` created (empty).
+  - Broker: anonymous `:1883` — matches Unit D; no credential change needed.
+  - Bench parser planned (sec = 76-byte `<I 3f 3f 3f 3f 3i 3f`; min = JSON) — wiring deferred to Phase C6.
+- **Next: Phase C — data-safe EnergyCalibrator cutover** (parallel-run → verify → switch broker → decommission Pi). Stops for the user at the broker switch (C4, session boundary).
 
 ## Completed directions
 
