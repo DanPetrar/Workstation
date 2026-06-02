@@ -19,7 +19,9 @@ _Updated: 2026-06-02 by Pi Claude_
   - **C3 ✅** Full Pi history merged into WS DB (idempotent, PK ts+unit); reconciled — both have cal_sec 178649 / cal_min 3029 up to snapshot boundary.
   - **C4 ✅ CUTOVER DONE (no data loss).** Unit D `mqtt_host` now `.11`; WS collector reads **local broker** (~1s lag); Pi `cal_collector` **inactive+disabled**. Final reconciliation: both DBs identical to Pi freeze (sec 178986 / min 3035); WS now live-ahead.
   - **C5 ✅ services + crons moved.** WS systemd: `cal_collector.service` (active+enabled, local broker) and `cal_reports.service` (active+enabled, http://192.168.110.11:8080/). Crons in `dan-linux` crontab: daily report 00:05 (`/workspace/cal-data/ws_daily_report.sh`, passes `--db`), prune 00:30 Mon–Sat, prune+vacuum Sun. Pi bench crons removed. Report gen smoke-tested (2026-06-01 PDF: 1416 min / 83348 sec rows).
-  - **Next: C6** InfluxDB cal feed + Grafana bench panel; **C7** e2e verify; **C8** decommission Pi bench (disable Pi `cal_reports.service`; archive Pi `cal_data.db`; **leave Pi broker — ZAX still uses it**).
+  - **C7 ✅ verified.** WS test suites pass (report 4/4, energy-accumulator 3/3); report totals match Pi exactly (2026-05-31: Min 502 / Sec 29562 / Hours 9); live collector lag steady 1s.
+  - **C8 ✅ Pi bench decommissioned.** Pi `cal_reports` + `cal_collector` inactive+disabled; Pi `cal_data.db` archived → `collector/cal_data_pi_archive_20260602.db.gz` (original retained as rollback). **Pi broker + `zax_directory` still active (ZAX untouched).**
+  - **EnergyCalibrator migration COMPLETE** (core). Deferred: **C6** (InfluxDB cal feed + Grafana bench panel — additive). Remaining migration phases: **D** (infra source-of-truth doc + operating rules + health-check scripts), **E** (build bench session UI — the original objective).
 
 ## Completed directions
 
