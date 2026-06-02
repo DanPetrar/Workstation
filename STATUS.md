@@ -23,7 +23,8 @@ _Updated: 2026-06-02 by Pi Claude_
   - **C8 ✅ Pi bench decommissioned.** Pi `cal_reports` + `cal_collector` inactive+disabled; Pi `cal_data.db` archived → `collector/cal_data_pi_archive_20260602.db.gz` (original retained as rollback). **Pi broker + `zax_directory` still active (ZAX untouched).**
   - **EnergyCalibrator migration COMPLETE** (core). 
   - **2026-06-02 ~19:25 — data reset for new DUT:** new box unit **PS-1110** installed 14:00; old PDFs deleted + all DB rows before 14:00 cleared (kept ~19.5k sec / 326 min rows since 14:00). DB vacuumed → 3.4M. Bench testing for PS-1110 to start later today. PS-1110 = device-under-test name only (Unit D unchanged).
-  - **C6 IN PROGRESS:** wiring InfluxDB cal feed + Grafana bench panel.
+  - **C6 ✅ DONE:** `cal-parser.service` (active+enabled, `/opt/cal-parser/cal_parser.py`, source in `infrastructure/cal_parser.py`) subscribes the **local** broker `cal_F07F8C/#`, writes InfluxDB `zaxenergy`: `power` (box CT sec), `cal_meter` (SDM ref), `cal_box`, `cal_dev` (w_pct/dkwh_pct). Grafana dashboard **"Bench - calibration"** (uid `bench-calib`) → http://192.168.110.11:3000/d/bench-calib/ — verified returning live data. (dkwh_pct shows -100 at idle until real load drives box energy.)
+  - **EnergyCalibrator migration + C6 COMPLETE.** Remaining (future): Phase D (infra docs/rules/health scripts), Phase E (bench session UI).
 
 ## Completed directions
 
