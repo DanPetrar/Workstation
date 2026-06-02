@@ -3,6 +3,16 @@
 _Prepared 2026-06-01 (Pi Claude). **Execution begins 2026-06-02.** Do not run any
 step until the Pending Decisions below are confirmed at the start of execution._
 
+> **✅ EXECUTED 2026-06-02 — EnergyCalibrator migration COMPLETE.**
+> Phases **A** (direct SSH control), **B** (provision), **C1–C8** (data-safe cutover,
+> zero data loss) and **C6** (InfluxDB + Grafana bench feed) are all done. D1–D4
+> defaults were confirmed. The bench backend runs entirely on the Workstation as
+> systemd services (`cal_collector`, `cal_reports`, `cal-parser`); the Pi bench
+> services are disabled and its DB archived; the Pi broker stays up for ZAX.
+> **Remaining: Phase D** (this doc → source-of-truth infra doc, operating rules,
+> health-check scripts) and **Phase E** (bench session UI). See `STATUS.md` for
+> the step-by-step record.
+
 ---
 
 ## 1. Purpose & goals
