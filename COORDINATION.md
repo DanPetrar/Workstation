@@ -11,7 +11,17 @@ _Read this at the start of every Claude Code session on this machine._
 | **Pi** (192.168.110.225) | Coordinator — writes task specs, reviews results, maintains project docs | Yes |
 | **Workstation** (this machine) | Executor — implements tasks, builds, tests, commits results | Yes |
 
-**The user works on both machines.** Pi Claude and Workstation Claude are separate instances with no shared memory. All coordination goes through GitHub. The Pi Claude knows the ZaxEnergy project in full detail; task specs written by Pi Claude are self-contained so Workstation Claude can execute them without prior context.
+**The user works on both machines.** Pi Claude and Workstation Claude are separate instances with no shared memory. The Pi Claude knows the ZaxEnergy project in full detail; task specs written by Pi Claude are self-contained so Workstation Claude can execute them without prior context.
+
+### Control model (since 2026-06-02 — migration Phase A)
+
+The Pi session now has **direct SSH control** of this Workstation
+(`ssh ws` → `dan-linux@192.168.110.11`, key-based, passwordless sudo). This is the
+**default** path: the Pi Claude runs commands here directly over SSH.
+
+The **GitHub task-spec hand-off below is the fallback** — used for work that must run
+locally on the Workstation (a Claude session here, interactive tools), or when direct
+SSH is unavailable.
 
 ---
 

@@ -1,10 +1,13 @@
 # Current Status — ZaxEnergy Infrastructure
 
-_Updated: 2026-05-27 by Pi Claude_
+_Updated: 2026-06-02 by Pi Claude_
 
 ## Active tasks
 
-_None — all directions complete. Awaiting next direction from Pi._
+**Pi→Workstation migration in progress** (runbook: `MIGRATION-pi-to-workstation.md`).
+- **Phase A — direct SSH control: ✅ COMPLETE.** Pi session reaches this machine via
+  `ssh ws` (key-based, passwordless sudo). GitHub hand-off is now the fallback.
+- Next: Phase B (provision the EnergyCalibrator bench backend here), then Phase C cutover.
 
 ## Completed directions
 
