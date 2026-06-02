@@ -18,8 +18,8 @@ _Updated: 2026-06-02 by Pi Claude_
   - **C2 ✅** Shared-window cross-check: Pi vs WS identical (259 sec rows, ΣW 345516.0, 4 min rows, Σdkwh 0.03/0.03/0.03).
   - **C3 ✅** Full Pi history merged into WS DB (idempotent, PK ts+unit); reconciled — both have cal_sec 178649 / cal_min 3029 up to snapshot boundary.
   - **C4 ✅ CUTOVER DONE (no data loss).** Unit D `mqtt_host` now `.11`; WS collector reads **local broker** (~1s lag); Pi `cal_collector` **inactive+disabled**. Final reconciliation: both DBs identical to Pi freeze (sec 178986 / min 3035); WS now live-ahead.
-  - **⚠️ WS collector is still a `setsid` process (pid in `/workspace/cal-data/collector.pid`), NOT yet a systemd service — won't survive a WS reboot until C5.**
-  - **Next: C5** install collector+report as systemd on WS + recreate daily-report/prune crons (remove from Pi), then C6 (InfluxDB/Grafana feed), C7 (e2e verify), C8 (decommission Pi bench: archive Pi cal_data.db; leave Pi broker for ZAX).
+  - **C5 ✅ services + crons moved.** WS systemd: `cal_collector.service` (active+enabled, local broker) and `cal_reports.service` (active+enabled, http://192.168.110.11:8080/). Crons in `dan-linux` crontab: daily report 00:05 (`/workspace/cal-data/ws_daily_report.sh`, passes `--db`), prune 00:30 Mon–Sat, prune+vacuum Sun. Pi bench crons removed. Report gen smoke-tested (2026-06-01 PDF: 1416 min / 83348 sec rows).
+  - **Next: C6** InfluxDB cal feed + Grafana bench panel; **C7** e2e verify; **C8** decommission Pi bench (disable Pi `cal_reports.service`; archive Pi `cal_data.db`; **leave Pi broker — ZAX still uses it**).
 
 ## Completed directions
 
