@@ -21,7 +21,9 @@ _Updated: 2026-06-02 by Pi Claude_
   - **C5 ✅ services + crons moved.** WS systemd: `cal_collector.service` (active+enabled, local broker) and `cal_reports.service` (active+enabled, http://192.168.110.11:8080/). Crons in `dan-linux` crontab: daily report 00:05 (`/workspace/cal-data/ws_daily_report.sh`, passes `--db`), prune 00:30 Mon–Sat, prune+vacuum Sun. Pi bench crons removed. Report gen smoke-tested (2026-06-01 PDF: 1416 min / 83348 sec rows).
   - **C7 ✅ verified.** WS test suites pass (report 4/4, energy-accumulator 3/3); report totals match Pi exactly (2026-05-31: Min 502 / Sec 29562 / Hours 9); live collector lag steady 1s.
   - **C8 ✅ Pi bench decommissioned.** Pi `cal_reports` + `cal_collector` inactive+disabled; Pi `cal_data.db` archived → `collector/cal_data_pi_archive_20260602.db.gz` (original retained as rollback). **Pi broker + `zax_directory` still active (ZAX untouched).**
-  - **EnergyCalibrator migration COMPLETE** (core). Deferred: **C6** (InfluxDB cal feed + Grafana bench panel — additive). Remaining migration phases: **D** (infra source-of-truth doc + operating rules + health-check scripts), **E** (build bench session UI — the original objective).
+  - **EnergyCalibrator migration COMPLETE** (core). 
+  - **2026-06-02 ~19:25 — data reset for new DUT:** new box unit **PS-1110** installed 14:00; old PDFs deleted + all DB rows before 14:00 cleared (kept ~19.5k sec / 326 min rows since 14:00). DB vacuumed → 3.4M. Bench testing for PS-1110 to start later today. PS-1110 = device-under-test name only (Unit D unchanged).
+  - **C6 IN PROGRESS:** wiring InfluxDB cal feed + Grafana bench panel.
 
 ## Completed directions
 
