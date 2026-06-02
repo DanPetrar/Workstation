@@ -13,7 +13,12 @@ _Updated: 2026-06-02 by Pi Claude_
   - DB dir `/workspace/cal-data/` created (empty).
   - Broker: anonymous `:1883` — matches Unit D; no credential change needed.
   - Bench parser planned (sec = 76-byte `<I 3f 3f 3f 3f 3i 3f`; min = JSON) — wiring deferred to Phase C6.
-- **Next: Phase C — data-safe EnergyCalibrator cutover** (parallel-run → verify → switch broker → decommission Pi). Stops for the user at the broker switch (C4, session boundary).
+- **Phase C — cutover IN PROGRESS (paused before C4):**
+  - **C1 ✅** Parallel-run collector live on Workstation (pid in `/workspace/cal-data/collector.pid`), subscribed to **Pi broker .225**, writing `/workspace/cal-data/cal_data.db`. **Must keep running until C4.** Pi collector still primary.
+  - **C2 ✅** Shared-window cross-check: Pi vs WS identical (259 sec rows, ΣW 345516.0, 4 min rows, Σdkwh 0.03/0.03/0.03).
+  - **C3 ✅** Full Pi history merged into WS DB (idempotent, PK ts+unit); reconciled — both have cal_sec 178649 / cal_min 3029 up to snapshot boundary.
+  - **⏸️ C4 NEXT — needs user + session boundary:** re-point Unit D `mqtt_host` .225→.11, point WS collector at local broker, stop+disable Pi `cal_collector`.
+  - Then C5 (move reports+crons), C6 (InfluxDB/Grafana feed), C7 (e2e verify), C8 (decommission Pi bench).
 
 ## Completed directions
 
