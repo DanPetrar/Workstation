@@ -31,6 +31,7 @@ INFLUX_BUCKET = "zaxenergy"
 
 UNIT = "cal_F07F8C"                # stable MQTT identity (DUT name tracked separately)
 PHASES = ["R", "S", "T"]
+MIN_TS = 1_577_836_800             # 2020-01-01; drop frames with pre-NTP boot timestamps
 
 influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
 write_api = influx.write_api(write_options=SYNCHRONOUS)
@@ -40,6 +41,8 @@ def handle_sec(payload):
     if len(payload) < 76:
         return
     f = struct.unpack('<I 3f 3f 3f 3f 3i 3f', payload[:76])
+    if f[0] < MIN_TS:
+        return                      # pre-NTP boot frame -- bogus timestamp
     ts_ns = f[0] * 1_000_000_000
     points = []
     for i, phase in enumerate(PHASES):
@@ -55,6 +58,8 @@ def handle_min(payload):
     meter = d.get("meter")
     if meter is None:
         return                      # SDM poll failed -- skip (matches collector)
+    if int(d["ts"]) < MIN_TS:
+        return                      # pre-NTP boot frame -- bogus timestamp
     ts_ns = int(d["ts"]) * 1_000_000_000
     points = []
 
