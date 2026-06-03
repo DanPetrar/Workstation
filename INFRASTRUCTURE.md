@@ -143,6 +143,27 @@ influxdb-client). The ZAX services use their own venv at
 `cal_sec_hourly`. No `sqlite3` CLI on the WS — query via the venv python's `sqlite3`
 module.
 
+**Grafana dashboards (repo-tracked):** each dashboard is committed as an import-ready
+`{folderUid, dashboard, overwrite}` JSON under `infrastructure/`:
+- `grafana-bench-calibration-dashboard.json` — "Bench - calibration" (uid `bench-calib`):
+  power vs SDM, deviation %, hourly energy deviation, cumulative energy, SDM stat.
+- `grafana-power-dashboard.json`, `grafana-energy-dashboard.json` — ZaxEnergy dashboards.
+
+Restore/import a dashboard:
+```
+curl -u admin:zaxenergy2026 -H "Content-Type: application/json" \
+  -X POST http://localhost:3000/api/dashboards/db \
+  -d @infrastructure/<file>.json
+```
+⚠️ **Manual export** — editing a dashboard in the Grafana UI does **not** update the
+repo copy. After UI changes, re-export to keep them in sync:
+```
+curl -s -u admin:zaxenergy2026 http://localhost:3000/api/dashboards/uid/<uid> \
+  | python3 -c 'import json,sys; g=json.load(sys.stdin); d=g["dashboard"]; d.pop("id",None); \
+json.dump({"folderUid":g["meta"].get("folderUid",""),"dashboard":d,"overwrite":True}, \
+open("infrastructure/<file>.json","w"), indent=2)'
+```
+
 ---
 
 ## 5. Health checks
