@@ -38,7 +38,7 @@ Role: **all permanent / production services.** Driven from the Pi via `ssh ws`.
 | `grafana-server.service` | Dashboards | `:3000` (admin `zaxenergy2026`) | ✅ |
 | `zax-parser.service` | **LIVE** ZAX A/C path: subscribes **Pi** broker `.225` (`zax_E47730/#`, `zax_73DA28/#`), binary → InfluxDB | — | ✅ |
 | `cal_collector.service` | Bench: subscribes **local** broker `cal_F07F8C/#` → SQLite `cal_data.db` | — | ✅ |
-| `cal_reports.service` | Bench report web server | `:8080` | ✅ |
+| `cal_reports.service` | Bench report web server **+ session UI** (start/stop/report by DUT serial — EnergyCalibrator Phase E) | `:8080` | ✅ |
 | `cal-parser.service` | Bench: subscribes **local** broker `cal_F07F8C/#` → InfluxDB | — | ✅ |
 | `zax-bridge.service` | Disabled 2026-06-03 — see note below | local broker `zax`→`zax/json` | ❌ disabled |
 | `zax-influx.service` | Disabled 2026-06-03 — see note below | local broker `zax/json` → InfluxDB | ❌ disabled |
@@ -129,7 +129,7 @@ influxdb-client). The ZAX services use their own venv at
 | Service | Unit file / source | Restart | DB / output |
 |---------|--------------------|---------|-------------|
 | `cal_collector` | source `/workspace/projects/EnergyCalibrator/collector/cal_collector.py`; env `CAL_DB`, `CAL_MQTT_HOST=127.0.0.1` | `ssh ws sudo systemctl restart cal_collector` | SQLite `/workspace/cal-data/cal_data.db` |
-| `cal_reports` | source `/workspace/projects/EnergyCalibrator/reports/`; serves `:8080` | `… restart cal_reports` | PDF/web from `cal_data.db` |
+| `cal_reports` | source `/workspace/projects/EnergyCalibrator/reports/serve.py`; serves `:8080` (PDF index + session UI; `sessions` table in `cal_data.db`) | `… restart cal_reports` | PDF/web + session reports from `cal_data.db` |
 | `cal-parser` | runs `/opt/cal-parser/cal_parser.py` (source tracked at `infrastructure/cal_parser.py`); broker `127.0.0.1` | `… restart cal-parser` | InfluxDB bucket `zaxenergy` |
 | `zax-parser` | runs `/opt/zax-parser/zax_parser.py`; broker hard-set `192.168.110.225` | `… restart zax-parser` | InfluxDB bucket `zaxenergy` |
 | `zax-bridge` / `zax-influx` | `/workspace/projects/mixed/ZaxEnergySurvey/collector/{bridge,influx_writer}.py` (disabled 2026-06-03) | — | — |
