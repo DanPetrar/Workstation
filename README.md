@@ -24,6 +24,10 @@ Dedicated workstation for tasks that require a full desktop development environm
 
 Task specs for the Android app: `ZaxEnergySurvey/android/tasks/`
 
+## Infrastructure (source of truth)
+
+See [`INFRASTRUCTURE.md`](INFRASTRUCTURE.md) — what runs where, the data-flow/broker map, operating rules, and per-service deploy steps. Per-machine health checks live in [`infrastructure/`](infrastructure/) (`health-pi.sh`, `health-ws.sh`).
+
 ## Installed tools
 
 See [`inventory.md`](inventory.md) — maintained by Claude Code; updated whenever tools are installed, removed, or reconfigured.

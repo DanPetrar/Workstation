@@ -23,6 +23,10 @@ The **GitHub task-spec hand-off below is the fallback** — used for work that m
 locally on the Workstation (a Claude session here, interactive tools), or when direct
 SSH is unavailable.
 
+> **Where things run** (permanent svc → Workstation; prototype/serial + firmware →
+> Pi) and the full service/data-flow map are in [`INFRASTRUCTURE.md`](INFRASTRUCTURE.md)
+> — the source of truth. Run `infrastructure/health-{pi,ws}.sh` at session start.
+
 ---
 
 ## How tasks work
