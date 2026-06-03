@@ -1,0 +1,264 @@
+{
+  "folderUid": "",
+  "dashboard": {
+    "panels": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "ffnbf64waxe68a"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 1
+            },
+            "unit": "watt"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "from(bucket:\"zaxenergy\")\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n|> filter(fn:(r)=> r._measurement==\"power\" and r.unit==\"cal_F07F8C\" and r._field==\"w\")\n|> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty:false)\n|> keep(columns:[\"_time\",\"_value\",\"phase\"])",
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "from(bucket:\"zaxenergy\")\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n|> filter(fn:(r)=> r._measurement==\"cal_meter\" and r.unit==\"cal_F07F8C\" and r._field==\"w\")\n|> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty:false)\n|> map(fn:(r)=> ({r with phase:\"SDM\"}))\n|> keep(columns:[\"_time\",\"_value\",\"phase\"])",
+            "refId": "B"
+          }
+        ],
+        "title": "Box CT power (W) vs SDM reference",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "ffnbf64waxe68a"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 1
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "id": 2,
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "from(bucket:\"zaxenergy\")\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n|> filter(fn:(r)=> r._measurement==\"cal_dev\" and r.unit==\"cal_F07F8C\" and r._field==\"w_pct\")\n|> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty:false)\n|> keep(columns:[\"_time\",\"_value\",\"phase\"])",
+            "refId": "A"
+          }
+        ],
+        "title": "CT power deviation vs SDM (%)",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "ffnbf64waxe68a"
+        },
+        "description": "Per-hour energy deviation: (\u03a3box \u2212 \u03a3SDM)/\u03a3SDM \u00d7 100 per phase, computed from summed energies (not averaged per-minute %). Hourly buckets (~45 box counts) cut the 0.01 kWh quantization noise to ~\u00b12%; averages to ~\u00b11% over the test. See cumulative panel for the clean view.",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineInterpolation": "linear",
+              "lineWidth": 1
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "id": 3,
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "box = from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r)=> r._measurement==\"cal_box\" and r.unit==\"cal_F07F8C\" and r._field==\"dkwh\")\n  |> aggregateWindow(every: 1h, fn: sum, createEmpty:false)\n  |> keep(columns:[\"_time\",\"_value\",\"phase\"])\n  |> pivot(rowKey:[\"_time\"], columnKey:[\"phase\"], valueColumn:\"_value\")\n\nsdm = from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r)=> r._measurement==\"cal_meter\" and r.unit==\"cal_F07F8C\" and r._field==\"dkwh\")\n  |> aggregateWindow(every: 1h, fn: sum, createEmpty:false)\n  |> keep(columns:[\"_time\",\"_value\"])\n  |> rename(columns:{_value:\"SDM\"})\n\njoin(tables:{b:box, s:sdm}, on:[\"_time\"])\n  |> map(fn:(r)=> ({ _time: r._time,\n      R: if r.SDM > 0.0 then (r.R - r.SDM)/r.SDM*100.0 else 0.0,\n      S: if r.SDM > 0.0 then (r.S - r.SDM)/r.SDM*100.0 else 0.0,\n      T: if r.SDM > 0.0 then (r.T - r.SDM)/r.SDM*100.0 else 0.0 }))",
+            "refId": "A"
+          }
+        ],
+        "title": "CT energy deviation vs SDM (hourly, %)",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "ffnbf64waxe68a"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "id": 4,
+        "options": {
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "from(bucket:\"zaxenergy\")\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n|> filter(fn:(r)=> r._measurement==\"cal_meter\" and r.unit==\"cal_F07F8C\" and (r._field==\"v\" or r._field==\"a\" or r._field==\"w\" or r._field==\"pf\"))\n|> last()\n|> keep(columns:[\"_field\",\"_value\"])",
+            "refId": "A"
+          }
+        ],
+        "title": "SDM630 reference (live)",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "ffnbf64waxe68a"
+        },
+        "description": "Running total of energy (cumulative \u03a3 dkwh, kWh) over the selected range. R/S/T from cal_box, SDM from cal_meter. Lines track if the CTs match the reference; vertical gaps = drift. Resets to 0 at range start (relative, not since test start).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "kWh (cumulative)",
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "showPoints": "never",
+              "spanNulls": true
+            },
+            "unit": "kwatth"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "SDM"
+              },
+              "properties": [
+                {
+                  "id": "custom.lineWidth",
+                  "value": 3
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [
+                      8,
+                      4
+                    ],
+                    "fill": "dash"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "id": 5,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "from(bucket:\"zaxenergy\")\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n|> filter(fn:(r)=> r._measurement==\"cal_box\" and r.unit==\"cal_F07F8C\" and r._field==\"dkwh\")\n|> aggregateWindow(every: 1m, fn: sum, createEmpty:false)\n|> cumulativeSum(columns:[\"_value\"])\n|> keep(columns:[\"_time\",\"_value\",\"phase\"])",
+            "refId": "BOX"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "ffnbf64waxe68a"
+            },
+            "query": "from(bucket:\"zaxenergy\")\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n|> filter(fn:(r)=> r._measurement==\"cal_meter\" and r.unit==\"cal_F07F8C\" and r._field==\"dkwh\")\n|> aggregateWindow(every: 1m, fn: sum, createEmpty:false)\n|> cumulativeSum(columns:[\"_value\"])\n|> map(fn:(r)=> ({r with phase:\"SDM\"}))\n|> group(columns:[\"phase\"])\n|> keep(columns:[\"_time\",\"_value\",\"phase\"])",
+            "refId": "SDM"
+          }
+        ],
+        "title": "Cumulative energy \u2014 box CTs (R/S/T) vs SDM",
+        "type": "timeseries"
+      }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 39,
+    "tags": [
+      "bench",
+      "cal_F07F8C"
+    ],
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "timezone": "browser",
+    "title": "Bench - calibration",
+    "uid": "bench-calib",
+    "version": 7
+  },
+  "overwrite": true
+}
