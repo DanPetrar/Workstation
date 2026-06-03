@@ -9,9 +9,9 @@ step until the Pending Decisions below are confirmed at the start of execution._
 > defaults were confirmed. The bench backend runs entirely on the Workstation as
 > systemd services (`cal_collector`, `cal_reports`, `cal-parser`); the Pi bench
 > services are disabled and its DB archived; the Pi broker stays up for ZAX.
-> **Remaining: Phase D** (this doc → source-of-truth infra doc, operating rules,
-> health-check scripts) and **Phase E** (bench session UI). See `STATUS.md` for
-> the step-by-step record.
+> **Phase D ✅ DONE (2026-06-03)** → `INFRASTRUCTURE.md` (source-of-truth map +
+> operating rules) and `infrastructure/health-{pi,ws}.sh`. **Remaining: Phase E**
+> (bench session UI). See `STATUS.md` for the step-by-step record.
 
 ---
 

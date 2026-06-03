@@ -24,7 +24,8 @@ _Updated: 2026-06-02 by Pi Claude_
   - **EnergyCalibrator migration COMPLETE** (core). 
   - **2026-06-02 ~19:25 — data reset for new DUT:** new box unit **PS-1110** installed 14:00; old PDFs deleted + all DB rows before 14:00 cleared (kept ~19.5k sec / 326 min rows since 14:00). DB vacuumed → 3.4M. Bench testing for PS-1110 to start later today. PS-1110 = device-under-test name only (Unit D unchanged).
   - **C6 ✅ DONE:** `cal-parser.service` (active+enabled, `/opt/cal-parser/cal_parser.py`, source in `infrastructure/cal_parser.py`) subscribes the **local** broker `cal_F07F8C/#`, writes InfluxDB `zaxenergy`: `power` (box CT sec), `cal_meter` (SDM ref), `cal_box`, `cal_dev` (w_pct/dkwh_pct). Grafana dashboard **"Bench - calibration"** (uid `bench-calib`) → http://192.168.110.11:3000/d/bench-calib/ — verified returning live data. (dkwh_pct shows -100 at idle until real load drives box energy.)
-  - **EnergyCalibrator migration + C6 COMPLETE.** Remaining (future): Phase D (infra docs/rules/health scripts), Phase E (bench session UI).
+  - **EnergyCalibrator migration + C6 COMPLETE.**
+  - **Phase D ✅ DONE (2026-06-03).** Source-of-truth `INFRASTRUCTURE.md` (what-runs-where, data-flow/broker map, operating rules, deploy steps) + per-machine `infrastructure/health-{pi,ws}.sh` (both PASS live); README/COORDINATION linked. Disabled dormant `zax-bridge`/`zax-influx` on WS (no publisher; superseded by `zax-parser`). Remaining (future): **Phase E** (bench session UI).
 
 ## Completed directions
 
