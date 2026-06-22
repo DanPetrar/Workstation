@@ -155,6 +155,13 @@ curl -u admin:zaxenergy2026 -H "Content-Type: application/json" \
   -X POST http://localhost:3000/api/dashboards/db \
   -d @infrastructure/<file>.json
 ```
+
+> **Password reset (if needed):** Must stop Grafana first, then use CLI, then start:
+> ```
+> sudo systemctl stop grafana-server
+> sudo grafana cli --homepath /usr/share/grafana admin reset-admin-password zaxenergy2026
+> sudo systemctl start grafana-server
+> ```
 ⚠️ **Manual export** — editing a dashboard in the Grafana UI does **not** update the
 repo copy. After UI changes, re-export to keep them in sync:
 ```
