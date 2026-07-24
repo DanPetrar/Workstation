@@ -48,6 +48,11 @@
         "type": "timeseries", "title": "Reactive Power (VAr)", "gridPos": {"x":12,"y":16,"w":12,"h":8},
         "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
         "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"var\")"}]
+      },
+      {
+        "type": "table", "title": "Open data gaps (all units)", "gridPos": {"x":0,"y":24,"w":24,"h":8},
+        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
+        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: -30d)\n  |> filter(fn:(r) => r._measurement == \"data_gap\")\n  |> filter(fn:(r) => r._field == \"status\" or r._field == \"duration_s\" or r._field == \"recovered_count\")\n  |> pivot(rowKey:[\"_time\",\"unit\"], columnKey:[\"_field\"], valueColumn:\"_value\")\n  |> filter(fn:(r) => r.status != \"recovered\")\n  |> sort(columns:[\"_time\"], desc:true)\n  |> keep(columns:[\"_time\",\"unit\",\"status\",\"duration_s\",\"recovered_count\"])"}]
       }
     ],
     "schemaVersion": 38,
