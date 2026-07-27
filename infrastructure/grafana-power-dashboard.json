@@ -1,62 +1,345 @@
 {
-  "folderUid": "ffnbi3smi4ruod",
-  "dashboard": {
-    "title": "ZaxEnergy — Power",
-    "uid": "zax-power",
-    "timezone": "browser",
-    "refresh": "5s",
-    "time": {"from": "now-15m", "to": "now"},
-    "templating": {
-      "list": [{
-        "name": "unit",
-        "type": "custom",
-        "label": "Unit",
-        "current": {"value": "Unit_A", "text": "Unit_A"},
-        "options": [
-          {"value": "Unit_A", "text": "Unit_A", "selected": true},
-          {"value": "Unit_C", "text": "Unit_C", "selected": false}
-        ]
-      }]
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"v\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Voltage (V)",
+      "type": "timeseries"
     },
-    "panels": [
-      {
-        "type": "timeseries", "title": "Voltage (V)", "gridPos": {"x":0,"y":0,"w":12,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"v\")"}]
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
       },
-      {
-        "type": "timeseries", "title": "Current (A)", "gridPos": {"x":12,"y":0,"w":12,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"a\")"}]
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
       },
-      {
-        "type": "timeseries", "title": "Active Power (W)", "gridPos": {"x":0,"y":8,"w":12,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"w\")"}]
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"a\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Current (A)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
       },
-      {
-        "type": "timeseries", "title": "Frequency (Hz)", "gridPos": {"x":12,"y":8,"w":12,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"hz\")"}]
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
       },
-      {
-        "type": "timeseries", "title": "Power Factor", "gridPos": {"x":0,"y":16,"w":12,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"pf\")"}]
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"w\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Power (W)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
       },
-      {
-        "type": "timeseries", "title": "Reactive Power (VAr)", "gridPos": {"x":12,"y":16,"w":12,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"var\")"}]
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
       },
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"hz\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Frequency (Hz)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"pf\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Power Factor",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"power\" and r.unit == \"${unit}\" and r._field == \"var\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Reactive Power (VAr)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 100,
+      "options": {
+        "barAlignment": 0,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r.unit == \"${unit}\" and r._field == \"kwh\")\n  |> group(columns: [\"phase\", \"unit\"])\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: true, columns: [\"_value\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Energy per minute (kWh)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 101,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "text": {
+          "valueSize": 36
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "query": "phaseData = from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r.unit == \"${unit}\" and r._field == \"kwh\")\n  |> group(columns: [\"phase\", \"unit\"])\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: true, columns: [\"_value\"])\n  |> sum(column: \"_value\")\n  |> map(fn: (r) => ({_time: now(), _value: r._value, phase: r.phase}))\n\ntotalData = from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r.unit == \"${unit}\" and r._field == \"kwh\")\n  |> group(columns: [\"phase\", \"unit\"])\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: true, columns: [\"_value\"])\n  |> group()\n  |> sum(column: \"_value\")\n  |> map(fn: (r) => ({_time: now(), _value: r._value, phase: \"Total\"}))\n\nunion(tables: [phaseData, totalData])\n  |> group(columns: [\"phase\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Energy (kWh)",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Unit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 102,
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "_time"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "import \"date\"\n\nfrom(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r.unit == \"${unit}\" and r._field == \"kwh\")\n  |> group(columns: [\"phase\", \"unit\"])\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: false, columns: [\"_value\"])\n  |> filter(fn: (r) => r._value < -0.0001)\n  |> group()\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1m), unit: r.unit, _value: 1.0}))\n  |> unique(column: \"_time\")\n  |> sort(columns: [\"_time\"], desc: true)",
+          "refId": "A"
+        }
+      ],
+      "title": "Board Restart Events",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ffnbf64waxe68a"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "targets": [
+        {
+          "query": "from(bucket:\"zaxenergy\")\n  |> range(start: -30d)\n  |> filter(fn:(r) => r._measurement == \"data_gap\")\n  |> filter(fn:(r) => r._field == \"status\" or r._field == \"duration_s\" or r._field == \"recovered_count\")\n  |> pivot(rowKey:[\"_time\",\"unit\"], columnKey:[\"_field\"], valueColumn:\"_value\")\n  |> filter(fn:(r) => r.status != \"recovered\")\n  |> sort(columns:[\"_time\"], desc:true)\n  |> keep(columns:[\"_time\",\"unit\",\"status\",\"duration_s\",\"recovered_count\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Open data gaps (all units)",
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "templating": {
+    "list": [
       {
-        "type": "table", "title": "Open data gaps (all units)", "gridPos": {"x":0,"y":24,"w":24,"h":8},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: -30d)\n  |> filter(fn:(r) => r._measurement == \"data_gap\")\n  |> filter(fn:(r) => r._field == \"status\" or r._field == \"duration_s\" or r._field == \"recovered_count\")\n  |> pivot(rowKey:[\"_time\",\"unit\"], columnKey:[\"_field\"], valueColumn:\"_value\")\n  |> filter(fn:(r) => r.status != \"recovered\")\n  |> sort(columns:[\"_time\"], desc:true)\n  |> keep(columns:[\"_time\",\"unit\",\"status\",\"duration_s\",\"recovered_count\"])"}]
+        "current": {
+          "text": "Unit_A",
+          "value": "Unit_A"
+        },
+        "label": "Unit",
+        "name": "unit",
+        "options": [
+          {
+            "selected": true,
+            "text": "Unit_A",
+            "value": "Unit_A"
+          },
+          {
+            "selected": false,
+            "text": "Unit_C",
+            "value": "Unit_C"
+          }
+        ],
+        "type": "custom"
       }
-    ],
-    "schemaVersion": 38,
-    "version": 1
+    ]
   },
-  "overwrite": true
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "ZaxEnergy \u2014 Power",
+  "uid": "zax-power",
+  "version": 14
 }
