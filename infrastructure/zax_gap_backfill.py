@@ -25,7 +25,7 @@ DEVICE_IPS = {
     "Unit_A": "192.168.20.102",
     "Unit_B": "192.168.20.113",
     "Unit_C": "192.168.20.103",
-    "Unit_D": "192.168.110.104",
+    "Unit_D": "192.168.20.105",
 }
 
 cli = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
