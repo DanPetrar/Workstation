@@ -22,7 +22,7 @@ BUCKET = "zaxenergy"
 STALE_S = 180  # must match zax_gap_watch.py's threshold
 
 DEVICE_IPS = {
-    "Unit_A": "192.168.20.102",
+    "Unit_A": "192.168.20.231",
     "Unit_B": "192.168.20.113",
     "Unit_C": "192.168.20.233",
     "Unit_D": "192.168.20.234",
