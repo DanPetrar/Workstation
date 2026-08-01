@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# health-ws.sh — start-of-session health check for the Workstation (192.168.110.11).
+# health-ws.sh — start-of-session health check for the Workstation (192.168.20.11).
 # Run locally on the WS:  bash infrastructure/health-ws.sh
 # (or from the Pi:  ssh ws 'bash ~/Workstation/infrastructure/health-ws.sh')
 # See INFRASTRUCTURE.md section 1 for what should be running here.

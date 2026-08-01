@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# health-pi.sh — start-of-session health check for the Pi (192.168.110.225).
+# health-pi.sh — start-of-session health check for the Pi (192.168.20.225).
 # Run locally on the Pi:  bash infrastructure/health-pi.sh
 # See INFRASTRUCTURE.md section 1 for what should be running here.
 set -u

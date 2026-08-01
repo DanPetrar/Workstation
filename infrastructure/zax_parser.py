@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-BROKER_HOST = "192.168.110.225"
+BROKER_HOST = "192.168.20.225"
 BROKER_PORT = 1883
 
 INFLUX_URL    = "http://localhost:8086"
