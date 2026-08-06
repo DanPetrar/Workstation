@@ -39,6 +39,7 @@ Role: **all permanent / production services.** Driven from the Pi via `ssh ws`.
 | Service | Purpose | Listen / target | Enabled |
 |---------|---------|-----------------|---------|
 | `mosquitto.service` | Permanent broker — all ZAX fleet units (A/B/C/D) **and** the EnergyCalibrator bench publish here | `:1883` | ✅ |
+| `chrony` | NTP server for the bench-LAN dev range — local backup time source since `pool.ntp.org` is unreliable there even though the Workstation's own upstream sync is fine (Canonical NTS pool, stratum 3). Config: `allow 192.168.20.64/26` + `allow 192.168.20.128/25` in `/etc/chrony/conf.d/bench-lan-server.conf` (source tracked at `infrastructure/bench-lan-server.conf`). Added 2026-08-06, verified with a real cross-host UDP-123 query (in-range client got a reply, `.11` itself queried as an external client was correctly refused). | `:123` (UDP) | ✅ |
 | `influxdb.service` | Time-series DB — org `zax`, bucket `zaxenergy` | `:8086` | ✅ |
 | `grafana-server.service` | Dashboards | `:3000` (admin `zaxenergy2026`) | ✅ |
 | `zax-parser.service` | **LIVE** ZAX A/B/C/D path: subscribes **local** broker (`localhost:1883`) — `zax_E47730/#`, `zax_E482C0/#`, `zax_73DA28/#`, `zax_F07F8C/#` — binary → InfluxDB | — | ✅ |
