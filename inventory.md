@@ -1,6 +1,6 @@
 # Workstation — Inventory
 
-_Last updated: 2026-05-27_
+_Last updated: 2026-08-06_
 
 Maintained by Claude Code. Updated whenever a tool is installed, removed, or reconfigured.
 
@@ -11,12 +11,12 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 | Item | Value |
 |------|-------|
 | OS | Ubuntu 26.04 LTS (Resolute) |
-| Kernel | 7.0.0-15-generic |
+| Kernel | 7.0.0-28-generic |
 | Architecture | x86_64 |
-| RAM | 7.1 GiB total, ~5.4 GiB available |
-| OS disk (`/dev/nvme0n1p2`) | 233 GB — 27 GB used, 195 GB free |
-| Workspace disk (`/dev/sda` → `/workspace`) | 220 GB — 39 MB used, 208 GB free |
-| IP address | 192.168.110.11 |
+| RAM | 7.1 GiB total, ~5.7 GiB available |
+| OS disk (`/dev/nvme0n1p2`) | 233 GB — 49 GB used, 173 GB free |
+| Workspace disk (`/dev/sda` → `/workspace`) | 220 GB — 1.3 GB used, 207 GB free |
+| IP address | 192.168.20.11 |
 
 ---
 
@@ -28,10 +28,10 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 | curl | 8.18.0 | ✅ installed |
 | wget | 1.25.0 | ✅ installed |
 | Python 3 | 3.14.4 | ✅ installed |
-| pip 3 | 26.1.1 | ✅ installed |
+| pip 3 | 25.1.1 | ✅ installed |
 | Node.js | 20.20.2 | ✅ installed |
 | npm | 10.8.2 | ✅ installed |
-| Java | OpenJDK 17.0.18 | ✅ installed |
+| Java | OpenJDK 17.0.19 | ✅ installed |
 
 ---
 
@@ -39,7 +39,7 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 
 | Tool | Version | Status |
 |------|---------|--------|
-| Claude Code | 2.1.152 | ✅ installed |
+| Claude Code | — | ➖ not installed (verified 2026-08-06: no `claude` binary on this machine) — Workstation is driven via direct SSH from the Pi/coordinator session (see `COORDINATION.md`); a local session here is the fallback path and is not currently set up |
 
 ---
 
@@ -60,7 +60,7 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 | InfluxDB | v2.7.11 (server) / dev CLI | ✅ active — org `zax`, bucket `zaxenergy` |
 | Grafana | 13.0.1+security-01 | ✅ active — InfluxDB data source + Power & Energy dashboards |
 | Mosquitto (MQTT) | 2.0.22 | ✅ active |
-| zax-parser | — | ✅ active — MQTT→InfluxDB, Unit_A + Unit_C |
+| zax-parser | — | ✅ active — MQTT→InfluxDB, Unit_A/B/C/D, subscribes localhost broker |
 | Android emulator | API 36, google_apis x86_64 | ✅ AVD `zax_test` — start with `~/start-zax-emulator.sh` |
 
 ---
@@ -69,8 +69,8 @@ Maintained by Claude Code. Updated whenever a tool is installed, removed, or rec
 
 | Check | Result |
 |-------|--------|
-| Workstation IP | 192.168.110.11 |
-| Pi (192.168.110.225) | ✅ reachable (0.285 ms) |
+| Workstation IP | 192.168.20.11 |
+| Pi (192.168.20.225) | ✅ reachable (0.125 ms) |
 
 ---
 

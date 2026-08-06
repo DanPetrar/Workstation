@@ -2,6 +2,11 @@
 
 _Updated: 2026-06-22 by Pi Claude_
 
+> **Historical snapshot only, not maintained since 2026-06-22.** For current service
+> state and IPs, see `INFRASTRUCTURE.md` (architecture) and `inventory.md` (tool
+> versions). Left as a dated record intentionally, not refreshed by the 2026-08 network
+> migration fix.
+
 ## Active tasks
 
 _None — fleet expansion (Board_11+12) complete. Awaiting next direction from Pi._

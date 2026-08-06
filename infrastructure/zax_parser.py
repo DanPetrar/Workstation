@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-BROKER_HOST = "192.168.20.225"
+BROKER_HOST = "localhost"
 BROKER_PORT = 1883
 
 INFLUX_URL    = "http://localhost:8086"
@@ -12,7 +12,7 @@ INFLUX_TOKEN  = "REPLACE_WITH_TOKEN_FROM_I-001"
 INFLUX_ORG    = "zax"
 INFLUX_BUCKET = "zaxenergy"
 
-UNITS = {"zax_E47730": "Unit_A", "zax_73DA28": "Unit_C"}
+UNITS = {"zax_E47730": "Unit_A", "zax_E482C0": "Unit_B", "zax_73DA28": "Unit_C", "zax_F07F8C": "Unit_D"}
 PHASES = ["R", "S", "T"]
 
 influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)

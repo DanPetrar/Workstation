@@ -8,7 +8,7 @@ _Read this at the start of every Claude Code session on this machine._
 
 | Machine | Role | Claude Code |
 |---------|------|-------------|
-| **Pi** (192.168.110.225) | Coordinator — writes task specs, reviews results, maintains project docs | Yes |
+| **Pi** (192.168.20.225) | Coordinator — writes task specs, reviews results, maintains project docs | Yes |
 | **Workstation** (this machine) | Executor — implements tasks, builds, tests, commits results | Yes |
 
 **The user works on both machines.** Pi Claude and Workstation Claude are separate instances with no shared memory. The Pi Claude knows the ZaxEnergy project in full detail; task specs written by Pi Claude are self-contained so Workstation Claude can execute them without prior context.
@@ -16,7 +16,7 @@ _Read this at the start of every Claude Code session on this machine._
 ### Control model (since 2026-06-02 — migration Phase A)
 
 The Pi session now has **direct SSH control** of this Workstation
-(`ssh ws` → `dan-linux@192.168.110.11`, key-based, passwordless sudo). This is the
+(`ssh ws` → `dan-linux@192.168.20.11`, key-based, passwordless sudo). This is the
 **default** path: the Pi Claude runs commands here directly over SSH.
 
 The **GitHub task-spec hand-off below is the fallback** — used for work that must run
@@ -56,12 +56,12 @@ All tasks tracked in [`tasks/INDEX.md`](tasks/INDEX.md).
 
 ### 1 — Infrastructure stack
 Install and configure a data pipeline on this machine:
-- **MQTT subscriber** — connect to Pi's Mosquitto broker (192.168.110.225:1883), subscribe to `zax_E47730/#` and `zax_73DA28/#` (Unit A and C topics)
+- **MQTT subscriber** — connect to the Workstation's own Mosquitto broker (`localhost:1883`), subscribe to `zax_E47730/#`, `zax_E482C0/#`, `zax_73DA28/#`, `zax_F07F8C/#` (Units A/B/C/D)
 - **Parser** — decode binary ZaxEnergy payloads (`zax/sec` = 76 bytes, `zax/min` = 28 bytes) into structured data
 - **InfluxDB 2.x** — time series database storing decoded readings
 - **Grafana** — visualization dashboards for energy and power data
 
-> MQTT broker stays on Pi — units already publish there. Workstation subscribes; no unit reconfiguration needed.
+> MQTT broker is on this Workstation — units publish here directly (no Pi relay, since 2026-06-24). See [`INFRASTRUCTURE.md`](INFRASTRUCTURE.md) for the full data-flow map.
 
 ### 2 — Android app (ZaxEnergy companion)
 Flutter app for live dashboard and configuration of ZaxEnergy units over WiFi REST.
@@ -73,7 +73,7 @@ Task specs: `ZaxEnergySurvey/android/tasks/`
 
 ESP32-based 3-phase energy monitors. Each unit:
 - Publishes binary MQTT to Pi broker every second (`<prefix>/sec`, 76 bytes) and every minute (`<prefix>/min`, 28 bytes)
-- Exposes REST API at its local IP (e.g. `http://192.168.110.152`)
+- Exposes REST API at its local IP (e.g. `http://192.168.20.231`)
 
 **MQTT binary formats:**
 
@@ -101,9 +101,10 @@ Python unpack: `struct.unpack('<I 3f 3f', payload[:28])`
 
 | Name | IP | MQTT prefix |
 |------|----|-------------|
-| Unit A | 192.168.110.152 | zax_E47730 |
-| Unit B | 192.168.110.76 | zax_3C3C3C (field unit, may be offline) |
-| Unit C | 192.168.110.125 | zax_73DA28 |
+| Unit_A | 192.168.20.231 | zax_E47730 |
+| Unit_B | 192.168.20.232 | zax_E482C0 |
+| Unit_C | 192.168.20.233 | zax_73DA28 |
+| Unit_D | 192.168.20.234 | zax_F07F8C |
 
 ---
 
