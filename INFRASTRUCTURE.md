@@ -153,6 +153,12 @@ influxdb-client). The ZAX services use their own venv at
 - `00:05` daily — `/workspace/cal-data/ws_daily_report.sh` (bench daily PDF)
 - `00:30` Mon–Sat — `prune.py --apply` (retention 10 days)
 - `00:30` Sun — `prune.py --apply --vacuum`
+- hourly — `infrastructure/zax_errorlog_watch.py` (Unit_B for now, extensible to
+  other units): mirrors each unit's rotating on-device `/api/errors` (capped ~10 KB,
+  drops oldest on rotation) into an unbounded flat file at
+  `infrastructure/errorlogs/<unit>.log`, appending only new lines each run. Added
+  2026-08-26 to support longer-interval error-log analysis than the device itself
+  can retain.
 
 **Bench DB:** `cal_sec(ts, unit, R_*/S_*/T_*)`, `cal_min(… deviation cols)`,
 `cal_sec_hourly`. No `sqlite3` CLI on the WS — query via the venv python's `sqlite3`
