@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+
+# Run logs — cron stdout/stderr, appended forever. The scripts are tracked; their
+# output is not (it would churn every diff and grows without bound).
+infrastructure/*.log
+
+# Flat-file error-log archive. Data, not source: append-only, unbounded, and its whole
+# point is to outlive the device — back it up, don't version it. See INFRASTRUCTURE.md
+# section 4 (zax_errorlog_watch.py).
+infrastructure/errorlogs/

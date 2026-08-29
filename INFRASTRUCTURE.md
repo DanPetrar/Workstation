@@ -131,6 +131,31 @@ These are the standing rules for where new work goes (Phase D / migration outcom
 6. **Driving the Workstation:** `ssh ws` is the default. The GitHub task-spec hand-off
    (see [`COORDINATION.md`](COORDINATION.md)) is the fallback for work that must run in a
    Claude session *on* the Workstation. Don't ask the (non-Linux) user to run git/ssh by hand.
+7. **The Workstation is the infrastructure's primary data server** — InfluxDB, the
+   production broker, Grafana, the bench SQLite DB and the flat-file error-log archive
+   all live here, and most of it exists nowhere else. Treat every change to it as a
+   change to shared state, not to a personal machine.
+8. **Every intervention on the Workstation must be documented, in the same session it is
+   made.** A change that is not written down did not happen, because the next session
+   cannot see it. Where it goes:
+   - a new or changed service, cron, or scheduled task → **section 1** and **section 4**
+     of this file, in the same commit as the change;
+   - anything installed, deployed, or configured outside git (`/opt`, systemd units,
+     package installs, credentials) → note it here with its on-disk path, since the repo
+     is otherwise not a complete record of the machine;
+   - an incident, a surprising diagnosis, or a fix whose reasoning matters →
+     [`errors-history.md`](errors-history.md);
+   - a bench event that changes what stored data means (a reflash, a repartition, a wipe)
+     → a marker in the affected data itself, not only in prose.
+   Scripts deployed here belong **in this repo**, and this clone must be kept current:
+   `zax_errorlog_watch.py` was committed and documented from another session on
+   2026-08-26 (`8d2b645`), but the WS clone was never pulled, so local `git status`
+   showed it untracked and the local doc lacked its entry — a change can look missing
+   here purely because this working copy is behind `origin`. **Run `git pull` on this
+   repo before concluding anything is undocumented, and before starting WS work.**
+9. **Claude performs all Workstation interventions for now.** The user does not operate
+   this machine directly, so there is no second person who will notice an undocumented
+   change or reconstruct intent from memory. Assume the record is the only handover.
 
 ---
 
@@ -149,16 +174,39 @@ influxdb-client). The ZAX services use their own venv at
 | `zax-parser` | runs `/opt/zax-parser/zax_parser.py`; broker `localhost` (source tracked at `infrastructure/zax_parser.py` — kept in sync with the deployed copy) | `… restart zax-parser` | InfluxDB bucket `zaxenergy` |
 | `zax-bridge` / `zax-influx` | `/workspace/projects/mixed/ZaxEnergySurvey/collector/{bridge,influx_writer}.py` (disabled 2026-06-03) | — | — |
 
-**Crons (WS, `dan-linux` crontab):**
-- `00:05` daily — `/workspace/cal-data/ws_daily_report.sh` (bench daily PDF)
-- `00:30` Mon–Sat — `prune.py --apply` (retention 10 days)
-- `00:30` Sun — `prune.py --apply --vacuum`
-- hourly — `infrastructure/zax_errorlog_watch.py` (Unit_B for now, extensible to
-  other units): mirrors each unit's rotating on-device `/api/errors` (capped ~10 KB,
-  drops oldest on rotation) into an unbounded flat file at
-  `infrastructure/errorlogs/<unit>.log`, appending only new lines each run. Added
-  2026-08-26 to support longer-interval error-log analysis than the device itself
-  can retain.
+**Scheduled tasks (WS, `dan-linux` crontab)** — `ssh ws crontab -l` is the authority for
+*what* is scheduled; this table exists to say *why*, so an unfamiliar line in `ps` or a
+mystery file on disk can be traced back in one look. Keep it in step with the crontab.
+
+| Schedule | Task | Why it exists | Writes to |
+|----------|------|---------------|-----------|
+| `00:05` daily | `/workspace/cal-data/ws_daily_report.sh` | EnergyCalibrator bench daily PDF report | `/workspace/cal-data/` |
+| `00:30` Mon–Sat | `prune.py --apply` | 10-day retention on the bench SQLite DB, or it grows without bound | `/workspace/cal-data/prune.log` |
+| `00:30` Sun | `prune.py --apply --vacuum` | Weekly variant — same prune, plus reclaims file space (VACUUM is too slow to run daily) | `/workspace/cal-data/prune.log` |
+| every 5 min | `infrastructure/zax_gap_watch.py` | Gap-recovery system: finds holes in fleet time-series in InfluxDB and records them as the `data_gap` measurement, so an outage is visible as data rather than as absence. **Bench units only, not the delivered fleet.** | `infrastructure/zax_gap.log` |
+| hourly `:00` | `infrastructure/zax_errorlog_watch.py` (added 2026-08-26) | Flat-file archive of each unit's on-device error log. `/api/errors` is a small rotating buffer (~8% of LittleFS) that drops its oldest half when full; this fetches hourly and appends **only new lines**, giving unbounded local retention of a log the device itself cannot keep. | `infrastructure/errorlogs/<Unit>.log` (data), `infrastructure/zax_errorlog_watch.log` (run log) |
+
+Two things about the error-log archiver that are easy to misread later:
+
+- Its `UNITS` dict at the top of the script is the whole subscription list — currently
+  **`Unit_B` only**. A unit absent from that dict is silently not archived; there is no
+  warning anywhere.
+- It finds where to resume by matching the **last line of the saved file** against the
+  fresh fetch. If the device log was wiped (reflash, repartition, NVS clear) rather than
+  merely rotated, that match fails and it writes a
+  `[WATCHER] --- gap: ... boundary unknown ---` line and appends everything. The line is
+  correct that a boundary occurred but names rotation as the cause, which may not be true
+  — check for a nearby `[BENCH]` marker before believing it. Bench events are recorded
+  by appending a `[BENCH]` line by hand (see `errorlogs/Unit_B.log`, 2026-08-29
+  repartition).
+
+**What ran, and did it work:**
+```
+ssh ws 'crontab -l'                                              # what is scheduled
+ssh ws 'tail -5 ~/Workstation/infrastructure/zax_errorlog_watch.log'   # last hourly runs
+ssh ws 'tail -5 ~/Workstation/infrastructure/zax_gap.log'              # last 5-min runs
+ssh ws 'grep CRON /var/log/syslog | tail -20'                    # cron actually firing
+```
 
 **Bench DB:** `cal_sec(ts, unit, R_*/S_*/T_*)`, `cal_min(… deviation cols)`,
 `cal_sec_hourly`. No `sqlite3` CLI on the WS — query via the venv python's `sqlite3`
