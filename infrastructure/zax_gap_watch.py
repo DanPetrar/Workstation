@@ -27,6 +27,16 @@ STALE_S = 180  # normal cadence is ~1Hz; well above any single missed publish
 # invisible, and therefore never recovered either.
 STALE_MIN_S = 300
 
+# A device's `ts` is 0 until its clock is set, and a boot-relative watermark
+# would key a data_gap point near epoch 0 -- where two unrelated outages can
+# collide and silently overwrite each other's record. A gap we cannot key
+# correctly is worse than no gap: it corrupts a neighbour's. Anything below this
+# is not wall-clock and is refused rather than acted on. (The firmware hit the
+# same class of bug from the other direction on 2026-08-05: arithmetic on a
+# boot-relative ts wrapped to a bogus uint32 -- see _push's docstring in
+# tools/zaxtest/cases/test_ts.py.)
+SANE_EPOCH = 1_577_836_800   # 2020-01-01
+
 cli = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
 qapi = cli.query_api()
 wapi = cli.write_api(write_options=SYNCHRONOUS)
@@ -58,6 +68,10 @@ def _check(unit, now, label, measurement, field, threshold, stream):
     ts = last_seen(unit, measurement, field)
     if ts is None:
         print(f"{unit}/{label}: no data ever seen, skipping")
+        return
+    if ts < SANE_EPOCH:
+        print(f"{unit}/{label}: watermark {ts} is not wall-clock "
+              f"(boot-relative?), refusing to key a gap on it")
         return
     age = now - ts
     if age > threshold:
