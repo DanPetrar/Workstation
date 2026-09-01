@@ -38,8 +38,14 @@ STALE_S = 180            # must match zax_gap_watch.py's threshold
 MAX_GAP_AGE_S = 6 * 3600   # give up retrying a gap older than this -- close it
                            # out (best-effort "recovered") instead of leaving
                            # it "partial" to be re-pulled every 15 min forever
-MAX_PULL_WINDOW_S = 3600   # never ask a device for more than this much range
-                           # in one call, regardless of how old start_ts is
+MAX_PULL_WINDOW_S = 3600   # width of ONE recovery window
+MAX_WINDOWS_PER_RUN = 8    # 8 x 3600 s = 8 h, comfortably past the ~6.2 h ring, so a
+                           # gap inside the ring's capacity is fully walked in one run
+                           # rather than having its tail pulled and the rest declared
+                           # recovered (the pre-2026-09-01 behaviour: `expected` was
+                           # computed from the CLAMPED window, so any gap over an hour
+                           # was stamped "recovered" after one window's worth of fill —
+                           # silent loss, with no "partial" ever shown)
 LOCK_PATH = "/tmp/zax_gap_backfill.lock"
 
 DEVICE_IPS = {
@@ -55,16 +61,34 @@ wapi = cli.write_api(write_options=SYNCHRONOUS)
 
 
 def open_gaps():
+    """Return [(unit, stream, start_ts)].
+
+    `stream` MUST be carried through and written back verbatim. InfluxDB series
+    identity is measurement + FULL tag set, so `data_gap,unit=X,stream=sec` and
+    `data_gap,unit=X` are different series — a status write that omits the tag
+    lands in a phantom series, the real point stays "open" forever, and this
+    function re-selects it every run. That is the 2026-08-05 runaway-cron shape,
+    and it was live for a few hours on 2026-09-01 when the detector gained the
+    tag and this writer did not.
+
+    Points written before the tag existed have stream=None and must be written
+    back WITHOUT the tag, or the fix creates the same split it repairs."""
     q = (f'from(bucket:"{BUCKET}") |> range(start:-30d) '
          f'|> filter(fn:(r)=> r._measurement=="data_gap") '
          f'|> filter(fn:(r)=> r._field=="status") '
-         f'|> filter(fn:(r)=> r._value != "recovered") '
-         f'|> group() |> sort(columns:["_time"])')
+         # TERMINAL statuses, both excluded: "recovered" (the data is present)
+         # and "unrecoverable" (we asked for the whole span and the ring no
+         # longer had it). Only "open" and "partial" are re-selected — a
+         # terminal status that stayed selectable would retry forever, which is
+         # the 2026-08-05 failure mode.
+         f'|> filter(fn:(r)=> r._value != "recovered" and r._value != "unrecoverable") '
+         f'|> sort(columns:["_time"])')
     out = []
     for table in qapi.query(q):
         for rec in table.records:
-            out.append((rec.values.get("unit"), int(rec.get_time().timestamp())))
-    return out  # [(unit, start_ts), ...]
+            out.append((rec.values.get("unit"), rec.values.get("stream"),
+                        int(rec.get_time().timestamp())))
+    return out
 
 
 def last_seen(unit):
@@ -131,9 +155,12 @@ def pull_ring(unit, lo, hi):
     return _pull_chunked(unit, "sec", lo, hi)
 
 
-def write_gap(unit, start_ts, status, duration_s, recovered_count):
+def write_gap(unit, start_ts, status, duration_s, recovered_count, stream=None):
+    """Rewrite the gap point IN PLACE. `stream` must match what the detector
+    wrote (or be None for pre-tag points) — see open_gaps()."""
     now = int(datetime.datetime.now().timestamp())
-    line = (f'data_gap,unit={unit} '
+    tags = f"unit={unit}" + (f",stream={stream}" if stream else "")
+    line = (f'data_gap,{tags} '
             f'end_ts={now}i,duration_s={duration_s},status="{status}",'
             f'recovered_at={now}i,recovered_count={recovered_count}i,source="watermark_cron" '
             f'{start_ts * 1_000_000_000}')
@@ -217,22 +244,23 @@ def backfill_energy(unit, lo, hi):
 
 def main():
     now = int(datetime.datetime.now().timestamp())
-    for unit, start_ts in open_gaps():
+    for unit, stream, start_ts in open_gaps():
         try:
-            _process_gap(unit, start_ts, now)
+            _process_gap(unit, start_ts, now, stream)
         except Exception as e:
-            print(f"{unit}: unhandled error processing gap at {start_ts} ({e}), "
-                  f"leaving it for the next run")
+            print(f"{unit}/{stream}: unhandled error processing gap at {start_ts} "
+                  f"({e}), leaving it for the next run")
 
 
-def _process_gap(unit, start_ts, now):
+def _process_gap(unit, start_ts, now, stream=None):
     if now - start_ts > MAX_GAP_AGE_S:
-        # Too old to keep retrying -- the ring almost certainly no longer
-        # holds most of it anyway. Close it out so it stops being re-picked-up
-        # every 15 min; whatever's still in the ring was already recovered by
-        # an earlier run's partial pull (existing_influx_seconds dedupes).
-        write_gap(unit, start_ts, "recovered", float(now - start_ts), 0)
-        print(f"{unit}: gap at {start_ts} exceeded {MAX_GAP_AGE_S}s, closed out (best-effort)")
+        # Too old to keep retrying -- the ring holds ~6.2 h and this gap is
+        # older than that, so the data is gone. Marked "unrecoverable", NOT
+        # "recovered": those seconds were never retrieved and the record must
+        # not claim they were. Terminal, so open_gaps() stops selecting it.
+        write_gap(unit, start_ts, "unrecoverable", float(now - start_ts), 0, stream)
+        print(f"{unit}/{stream}: gap at {start_ts} exceeded {MAX_GAP_AGE_S}s and the unit "
+              f"never came back -> unrecoverable")
         return
 
     ts = last_seen(unit)
@@ -241,35 +269,46 @@ def _process_gap(unit, start_ts, now):
         return
 
     hi = ts  # live delivery resumed as of this timestamp
-    lo = max(start_ts, hi - MAX_PULL_WINDOW_S)
-    print(f"{unit}: recovered live at {hi}, pulling ring for [{lo}, {hi}]"
-          + (f" (clamped from {start_ts})" if lo != start_ts else ""))
-    try:
-        ring_by_ts = pull_ring(unit, lo, hi)
-    except Exception as e:
-        print(f"{unit}: export pull failed ({e}), leaving gap open")
-        return
+    print(f"{unit}/{stream}: live at {hi}, walking [{start_ts}, {hi}] "
+          f"in {MAX_PULL_WINDOW_S}s windows")
 
-    existing = existing_influx_seconds(unit, lo, hi)
-    missing = sorted(set(ring_by_ts) - existing)
-    if missing:
-        backfill_points(unit, ring_by_ts, missing)
+    covered_to = start_ts
+    windows = 0
+    n_sec = n_min = 0
+    while covered_to <= hi and windows < MAX_WINDOWS_PER_RUN:
+        w_hi = min(covered_to + MAX_PULL_WINDOW_S - 1, hi)
+        try:
+            ring = pull_ring(unit, covered_to, w_hi)
+        except Exception as e:
+            print(f"{unit}: export pull failed at [{covered_to},{w_hi}] ({e}), "
+                  f"leaving gap open for the next run")
+            return
+        missing = sorted(set(ring) - existing_influx_seconds(unit, covered_to, w_hi))
+        if missing:
+            backfill_points(unit, ring, missing)
+            n_sec += len(missing)
+        n_min += backfill_energy(unit, covered_to, w_hi)
+        covered_to = w_hi + 1
+        windows += 1
 
-    # Energy (MIN ring) over the same window. Detection watches `power` only, so
-    # an energy hole is invisible; recovering it alongside every sec recovery is
-    # the cheap way to keep the two measurements consistent.
-    n_min = backfill_energy(unit, lo, hi)
-    if n_min:
-        print(f"{unit}: wrote {n_min} backfilled energy minutes")
+    asked_for_everything = covered_to > hi
 
-    expected = max(hi - lo, 1)
-    recovered_count = len(ring_by_ts)
-    # A window-clamped pull can never itself reach 95% of the ORIGINAL gap's
-    # span, only of the clamped one -- status reflects this pull, not the
-    # full original gap (MAX_GAP_AGE_S is what eventually closes the rest).
-    status_out = "recovered" if recovered_count >= 0.95 * expected else "partial"
-    write_gap(unit, start_ts, status_out, float(hi - start_ts), recovered_count)
-    print(f"{unit}: wrote {len(missing)} backfilled seconds, gap marked {status_out}")
+    # Honest status. "recovered" is claimed ONLY when the seconds are actually
+    # present in InfluxDB across the WHOLE gap -- not when one window happened
+    # to fill. If the full span was requested and the data still is not there,
+    # the ring had already wrapped past it and it is gone: say so.
+    present = len(existing_influx_seconds(unit, start_ts, hi))
+    expected = max(hi - start_ts, 1)
+    if not asked_for_everything:
+        status_out = "partial"          # more windows to walk on the next run
+    elif present >= 0.95 * expected:
+        status_out = "recovered"
+    else:
+        status_out = "unrecoverable"    # asked for all of it; the ring no longer had it
+
+    write_gap(unit, start_ts, status_out, float(hi - start_ts), present, stream)
+    print(f"{unit}/{stream}: {windows} window(s), +{n_sec} sec +{n_min} min, "
+          f"{present}/{expected} present -> {status_out}")
 
 
 if __name__ == "__main__":
