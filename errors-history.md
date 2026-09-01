@@ -71,3 +71,58 @@ like `last()`/`sum()`/`count()`):
   repo-tracked exports (`infrastructure/grafana-power-dashboard.json` here,
   `Doc/grafana/zax-power.json` in ZaxModbus) are stale-prone documentation snapshots, not
   redeploy sources — they were also both found out of date during this incident.
+
+## 2026-09-01 — gap recovery had not run for four weeks, and re-enabling it naively re-broke the units
+
+**Found while verifying (not assuming) that the buffer/recovery mechanism was
+self-consistent.** The user's framing: the entire reason to buffer data is to deliver a
+consistent recovery mechanism.
+
+**Symptom.** `zax_gap_watch.py` (detection) runs every 5 min. `zax_gap_backfill.py`
+(recovery) — which `Doc/gap-recovery-plan.md` §3 specifies as a 15-min cron — was scheduled
+**nowhere**: not in either machine's crontab, not as a systemd timer. 29 `data_gap` points
+sat open, the oldest from 2026-08-05.
+
+**Cause.** The cron was pulled during the 2026-08-05 stall incident and never restored after
+the firmware fix (v1.1.11, corrected in v1.1.19) landed. Detection without recovery is worse
+than neither: the Grafana panel shows gaps being tracked, which reads as covered.
+
+**Re-enabling it naively would have reproduced the original fault.** Measured on Unit_A
+(fw 1.1.28) before scheduling anything: a 1 h `/api/export` pull = 2,081 rows = **15.8 s**,
+during which `/api/data` latency hit **15.29 s** and the unit logged **two** `Box comm lost —
+no data for 10s` faults, each with `restored` in the same second — the frozen-`loop()`
+signature from August. v1.1.19's early-exit bounded the ring SCAN; it does not bound the
+per-emitted-row cost, so a wide window still stalls past the 10 s threshold.
+
+**Fix — chunked pulls.** 240 s of ring per request (~240 rows, ~1.8 s), so `loop()` and the
+box parser run between requests.
+
+| | unchunked | chunked |
+|---|---|---|
+| max `/api/data` latency | 15.29 s | **1.80 s** |
+| new comm-loss faults | 2 | **0** |
+| wall time, 1 h window | 15.8 s | 24.4 s |
+
+**Four more inconsistencies fixed in the same pass:**
+1. **`/api/export` could not round-trip a `SecRecord`** — the CSV carried `v,a,w,hz` and
+   omitted `var` and `pf`, 4 of the 6 quantities the ring holds, while the live parser writes
+   all six. Recovered data was structurally unable to match live data. Fixed in fw **v1.1.28**
+   (columns APPENDED, so name-keyed consumers are unaffected); `var` is `int32_t`, so it
+   emits as `%ld`, not `%f`.
+2. **Energy was never recovered.** `/api/export` has always supported `type=min`; the script
+   only ever asked for `sec`. Energy recovery added alongside every sec recovery.
+3. **Energy gaps are still not DETECTED** — `zax_gap_watch.py` watches only the `power`
+   measurement. Recorded, not yet fixed.
+4. **The Modbus recovery path has better coverage than the HTTP one** (`hist_block` serves
+   both rings) **but is not deployed** — `zaxmodbus-poller.service` is `not-found` on the
+   Workstation. The transport built for the fleet is the one that is not running.
+
+**Also found: v1.2.0 will break Modbus MIN recovery.** The staged MIN record occupies
+`0x0420–0x042D` = 14 registers = 28 B, exactly today's wire form. A 52 B record needs 26. It
+fits inside the existing `0x0420–0x0445` block (SEC already uses all 38), so no new address
+space is required — but the length is hardcoded and would silently truncate.
+
+**Rules:** never schedule a job that was disabled after an incident without re-testing the
+failure mode it caused — the fix that made it safe may have been partial. And test a device
+pull with a responsiveness monitor as a positive control; the unit's own error log is the
+evidence, not the script's exit status.

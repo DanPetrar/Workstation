@@ -25,6 +25,7 @@ import datetime
 import fcntl
 import io
 import sys
+import time
 import urllib.request
 from influxdb_client import InfluxDBClient, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -87,12 +88,47 @@ def existing_influx_seconds(unit, lo, hi):
     return seen
 
 
-def pull_ring(unit, lo, hi):
-    url = f"http://{DEVICE_IPS[unit]}/api/export?type=sec&from={lo}&to={hi}"
+# A single /api/export call blocks the device's loop() for the whole response,
+# and loop() is also what reads the box serial line. Measured 2026-09-01 on
+# Unit_A (fw 1.1.28): a 1 h window = 2,081 rows = 15.8 s of response time, during
+# which /api/data latency hit 15.29 s and the unit logged TWO "Box comm lost -- no
+# data for 10s" faults, each with "restored" in the same second -- the signature
+# of a frozen loop(), not a real outage.
+#
+# The 2026-08-05 incident was the same mechanism at 45-134 s. Firmware v1.1.19's
+# early-exit bounded the SCAN, but not this: cost is per EMITTED row, so a large
+# window still stalls the unit past the 10 s comm-loss threshold.
+#
+# So pull in chunks. Separate HTTP requests let loop() run -- and therefore the
+# box parser -- in between, keeping every individual stall well under the
+# threshold. ~7.6 ms/row measured, so 240 rows is ~1.8 s.
+CHUNK_S = 240          # seconds of ring per request (~240 rows, ~1.8 s stall)
+CHUNK_PAUSE_S = 0.5    # let the device drain its box backlog between chunks
+
+
+def _pull_csv(unit, kind, lo, hi):
+    url = f"http://{DEVICE_IPS[unit]}/api/export?type={kind}&from={lo}&to={hi}"
     with urllib.request.urlopen(url, timeout=60) as resp:
-        text = resp.read().decode()
-    rows = list(csv.DictReader(io.StringIO(text)))
-    return {int(r["ts"]): r for r in rows}
+        return list(csv.DictReader(io.StringIO(resp.read().decode())))
+
+
+def _pull_chunked(unit, kind, lo, hi):
+    """Walk [lo, hi] in CHUNK_S slices so no single request stalls the device
+    past its comm-loss threshold. Returns {ts: row}."""
+    out = {}
+    start = lo
+    while start <= hi:
+        end = min(start + CHUNK_S - 1, hi)
+        for r in _pull_csv(unit, kind, start, end):
+            out[int(r["ts"])] = r
+        start = end + 1
+        if start <= hi:
+            time.sleep(CHUNK_PAUSE_S)
+    return out
+
+
+def pull_ring(unit, lo, hi):
+    return _pull_chunked(unit, "sec", lo, hi)
 
 
 def write_gap(unit, start_ts, status, duration_s, recovered_count):
@@ -105,18 +141,78 @@ def write_gap(unit, start_ts, status, duration_s, recovered_count):
 
 
 def backfill_points(unit, ring_by_ts, missing_ts):
+    """Write recovered seconds as `power` points.
+
+    var/pf are emitted when the device's CSV carries them. Until fw v1.1.28
+    /api/export shipped only v,a,w,hz -- 4 of the 6 quantities the ring holds --
+    so a recovered second could never match a live one, which zax_parser writes
+    with all six. Buffering exists to make recovery EQUIVALENT to live delivery;
+    a lossy export defeats that. Columns are keyed by NAME, so this handles both
+    the old and new CSV without a version check.
+    """
     lines = []
     for ts in missing_ts:
         r = ring_by_ts[ts]
         for ph in ("r", "s", "t"):
             Ph = ph.upper()
-            lines.append(
-                f"power,unit={unit},phase={Ph},source=buffer_backfill "
-                f"v={r['v_'+ph]},a={r['a_'+ph]},w={r['w_'+ph]},hz={r['hz_'+ph]} {ts}"
-            )
+            f = [f"v={r['v_'+ph]}", f"a={r['a_'+ph]}",
+                 f"w={r['w_'+ph]}", f"hz={r['hz_'+ph]}"]
+            if ("var_" + ph) in r:
+                f.append(f"var={int(float(r['var_' + ph]))}i")   # int field, matches live
+            if ("pf_" + ph) in r:
+                f.append(f"pf={r['pf_' + ph]}")
+            lines.append(f"power,unit={unit},phase={Ph},source=buffer_backfill "
+                         + ",".join(f) + f" {ts}")
     for i in range(0, len(lines), 1500):
         wapi.write(bucket=BUCKET, org=ORG, record="\n".join(lines[i:i + 1500]),
                    write_precision=WritePrecision.S)
+
+
+def pull_ring_min(unit, lo, hi):
+    """MIN (energy) ring. /api/export has always supported type=min; this script
+    only ever asked for sec, so energy gaps were never recovered at all.
+    Chunked like the sec pull -- a wide window is still a wide window."""
+    return _pull_chunked(unit, "min", lo, hi)
+
+
+def existing_influx_energy(unit, lo, hi):
+    q = (f'from(bucket:"{BUCKET}") |> range(start:{lo-1}, stop:{hi+1}) '
+         f'|> filter(fn:(r)=> r._measurement=="energy" and r.unit=="{unit}" '
+         f'and r._field=="kwh") |> group()')
+    seen = set()
+    for table in qapi.query(q):
+        for rec in table.records:
+            seen.add(int(rec.get_time().timestamp()))
+    return seen
+
+
+def backfill_energy(unit, lo, hi):
+    """Recover the MIN ring for the same window. Best-effort and non-fatal: a
+    failure here must not lose the sec recovery that already succeeded."""
+    try:
+        ring = pull_ring_min(unit, lo, hi)
+    except Exception as e:
+        print(f"{unit}: min export pull failed ({e}), energy not recovered")
+        return 0
+    missing = sorted(set(ring) - existing_influx_energy(unit, lo, hi))
+    lines = []
+    for ts in missing:
+        r = ring[ts]
+        for ph in ("r", "s", "t"):
+            Ph = ph.upper()
+            f = [f"kwh={r['kwh_'+ph]}", f"kvarh={r['kvarh_'+ph]}"]
+            # v1.2.0 adds export counters. Written ONLY when the device reports
+            # them -- absent must stay distinguishable from measured-as-zero.
+            if ("kwh_exp_" + ph) in r:
+                f.append(f"kwh_exp={r['kwh_exp_' + ph]}")
+            if ("kvarh_exp_" + ph) in r:
+                f.append(f"kvarh_exp={r['kvarh_exp_' + ph]}")
+            lines.append(f"energy,unit={unit},phase={Ph},source=buffer_backfill "
+                         + ",".join(f) + f" {ts}")
+    for i in range(0, len(lines), 1500):
+        wapi.write(bucket=BUCKET, org=ORG, record="\n".join(lines[i:i + 1500]),
+                   write_precision=WritePrecision.S)
+    return len(missing)
 
 
 def main():
@@ -158,6 +254,13 @@ def _process_gap(unit, start_ts, now):
     missing = sorted(set(ring_by_ts) - existing)
     if missing:
         backfill_points(unit, ring_by_ts, missing)
+
+    # Energy (MIN ring) over the same window. Detection watches `power` only, so
+    # an energy hole is invisible; recovering it alongside every sec recovery is
+    # the cheap way to keep the two measurements consistent.
+    n_min = backfill_energy(unit, lo, hi)
+    if n_min:
+        print(f"{unit}: wrote {n_min} backfilled energy minutes")
 
     expected = max(hi - lo, 1)
     recovered_count = len(ring_by_ts)
