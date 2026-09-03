@@ -70,4 +70,14 @@ assert P.decode_sec(sec) is not None
 for bad in (sec[:75], sec + b"\x00", b""):
     assert P.decode_sec(bad) is None, f"sec len {len(bad)} must be rejected"
 
-print("OK — exact-length dispatch: 28/52 min, 76 sec; everything else rejected")
+# zax_parser.py carries the same contract for the BENCH units (Unit_A..D) — the
+# first machines that will run 1.2.0 — and was missed by the initial W2 pass.
+import zax_parser as Z
+assert (Z.MIN_LEN_V1, Z.MIN_LEN_V2, Z.SEC_LEN) == (28, 52, 76)
+assert Z.decode_min(v1)[3] is None, "1.1.x record must report no export"
+assert Z.decode_min(v2)[3] is not None, "1.2.0 record must carry export"
+for bad in (v2[:40], v2 + b"\x00", v1[:27], b""):
+    assert Z.decode_min(bad) is None, f"zax_parser: len {len(bad)} must be rejected"
+
+print("OK — exact-length dispatch in BOTH parsers: 28/52 min, 76 sec; "
+      "everything else rejected")

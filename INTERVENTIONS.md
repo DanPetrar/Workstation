@@ -30,3 +30,28 @@ published to `zax_E4A85C/min`:
 
 **Rollback:** `sudo cp /opt/zaxmodbus-parser/zaxmodbus_parser.py.bak-20260903-112106 \
 /opt/zaxmodbus-parser/zaxmodbus_parser.py && sudo systemctl restart zaxmodbus-parser`
+
+## 2026-09-03 11:50 — deploy W2 to zax-parser (the BENCH parser, missed by the first pass)
+
+**What:** replaced `/opt/zax-parser/zax_parser.py` and restarted `zax-parser.service`.
+Backup: `zax_parser.py.bak-20260903-11*`. Redeployed at 11:56 after adding a
+`__main__` guard, so repo and deployment are byte-equivalent apart from the token.
+
+**Why this was a hole in W2.** The first pass fixed only
+`zaxmodbus_parser.py` (the 15 fleet prefixes). `zax_parser.py` serves
+`zax_E47730`/`E482C0`/`73DA28`/`F07F8C` — **Unit_A..D, the bench units, which are
+the first machines that will ever run 1.2.0**. It still had `len(payload) < 28`,
+so it would have silently dropped the export pair exactly where 1.2.0 lands first.
+
+**Token handling:** the repo copy keeps the `REPLACE_WITH_TOKEN_FROM_I-001`
+placeholder by design; the live token is re-injected during deployment and never
+committed. (It was printed once in a diff during this session — worth rotating.)
+
+**Verified against live traffic, not synthetic:** Unit_A is on the box and
+publishing, so after the restart real records flowed through the new code —
+**9 `energy.kwh` points in 3 minutes, 0 rejects, 0 errors**, and `kwh_exp` = 0
+points, correct because no unit runs 1.2.0 yet. That also demonstrates W3's
+"tolerate a missing series": the export query returns nothing and nothing breaks.
+
+**Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20260903-11* \
+/opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`

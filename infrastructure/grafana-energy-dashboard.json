@@ -1,25 +1,66 @@
 {
-  "folderUid": "ffnbi3smi4ruod",
-  "dashboard": {
-    "title": "ZaxEnergy — Energy",
-    "uid": "zax-energy",
-    "timezone": "browser",
-    "refresh": "1m",
-    "time": {"from": "now-24h", "to": "now"},
-    "panels": [
-      {
-        "type": "timeseries", "title": "Active Energy (kWh)", "gridPos": {"x":0,"y":0,"w":24,"h":10},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r._field == \"kwh\")"}]
-      },
-      {
-        "type": "timeseries", "title": "Reactive Energy (kVArh)", "gridPos": {"x":0,"y":10,"w":24,"h":10},
-        "datasource": {"type":"influxdb","uid":"ffnbf64waxe68a"},
-        "targets": [{"refId":"A","query":"from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r._field == \"kvarh\")"}]
-      }
-    ],
-    "schemaVersion": 38,
-    "version": 1
+ "folderUid": "ffnbi3smi4ruod",
+ "dashboard": {
+  "title": "ZaxEnergy \u2014 Energy",
+  "uid": "zax-energy",
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {
+   "from": "now-24h",
+   "to": "now"
   },
-  "overwrite": true
+  "panels": [
+   {
+    "type": "timeseries",
+    "title": "Active Energy \u2014 import / export (kWh)",
+    "gridPos": {
+     "x": 0,
+     "y": 0,
+     "w": 24,
+     "h": 10
+    },
+    "datasource": {
+     "type": "influxdb",
+     "uid": "ffnbf64waxe68a"
+    },
+    "targets": [
+     {
+      "refId": "A",
+      "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r._field == \"kwh\")"
+     },
+     {
+      "refId": "B",
+      "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r._field == \"kwh_exp\")"
+     }
+    ]
+   },
+   {
+    "type": "timeseries",
+    "title": "Reactive Energy \u2014 import / export (kVArh)",
+    "gridPos": {
+     "x": 0,
+     "y": 10,
+     "w": 24,
+     "h": 10
+    },
+    "datasource": {
+     "type": "influxdb",
+     "uid": "ffnbf64waxe68a"
+    },
+    "targets": [
+     {
+      "refId": "A",
+      "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r._field == \"kvarh\")"
+     },
+     {
+      "refId": "B",
+      "query": "from(bucket:\"zaxenergy\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn:(r) => r._measurement == \"energy\" and r._field == \"kvarh_exp\")"
+     }
+    ]
+   }
+  ],
+  "schemaVersion": 38,
+  "version": 2
+ },
+ "overwrite": true
 }
