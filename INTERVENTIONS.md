@@ -55,3 +55,30 @@ points, correct because no unit runs 1.2.0 yet. That also demonstrates W3's
 
 **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20260903-11* \
 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`
+
+## 2026-09-03 12:05 — deploy W1 + W4
+
+**What:** `git pull` in `/home/dan-linux/Workstation` (the checkout the gap crons
+run from, so W4 deploys by pull), then copied both parsers into `/opt/zax-parser/`
+and `/opt/zaxmodbus-parser/` and restarted both services. Backups taken as
+`*.bak-20260903-12*`; the live Influx token is re-injected into `zax_parser.py`
+during deployment and never committed.
+
+**W1 — implausible timestamps refused.** `zax_parser.py` had no timestamp
+validation at all and wrote `ts * 1e9` straight through, so a unit with an unset
+clock produced 1970 points — the most likely source of the pre-2020 rows already
+in the bucket. Both parsers now enforce MIN_TS (2020-01-01) and reject anything
+more than a day ahead. **Not the end state:** philosophy P2 wants such data
+MARKED and kept, not dropped; the carrier is spec B19, still undecided.
+
+**W4 — backfill follows `X-Zax-Next-From`.** It walked fixed 240 s slices and
+never read the header, working only because sec records are 1 Hz and a 240 s
+slice stays under the 400-row cap. Verified live on Unit_A: a 661 s window gives
+400 rows + next_from in one request, 646 rows when followed — **246 rows a single
+request would have lost.**
+
+**Post-deploy health:** both services active, no rejects/errors in the first
+2 minutes, and live bench traffic still being written.
+
+**Rollback:** restore `*.bak-20260903-12*` over each parser and restart; for W4,
+`git checkout` the previous commit in the ws checkout.
