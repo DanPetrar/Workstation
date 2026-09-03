@@ -4,6 +4,7 @@ Subscribes to the 10 batch boards' zax_<mac>/sec and /min topics on the local
 broker and writes to the dedicated `zaxmodbus` bucket with source=mqtt so the
 MQTT path stays separately comparable to the Modbus path (Phase 2 decision #2).
 """
+import os
 import struct
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient
@@ -13,7 +14,11 @@ BROKER_HOST = "localhost"          # batch-10 boards publish to the Workstation 
 BROKER_PORT = 1883
 
 INFLUX_URL    = "http://localhost:8086"
-INFLUX_TOKEN  = open("/opt/zaxmodbus-parser/.token").read().strip()
+# Path is overridable so the decode logic can be exercised off-box (see
+# test_zaxmodbus_parser.py). A MISSING token still raises, deliberately: in
+# production this must fail loudly at start rather than run and drop writes.
+TOKEN_FILE    = os.environ.get("ZAX_TOKEN_FILE", "/opt/zaxmodbus-parser/.token")
+INFLUX_TOKEN  = open(TOKEN_FILE).read().strip()
 INFLUX_ORG    = "zax"
 INFLUX_BUCKET = "zaxmodbus"
 SOURCE        = "mqtt"
@@ -42,13 +47,62 @@ influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
 write_api = influx.write_api(write_options=SYNCHRONOUS)
 
 
+# ── wire lengths (W2) ────────────────────────────────────────────────────────
+# EXACT lengths, never ">=". The 1.2.0 MinRecord puts the import pair first so
+# its 28 B prefix is still a valid 1.1.x record (spec B1) — which means a ">= 28"
+# test accepts a 52 B record, decodes the import pair correctly, and **silently
+# discards the export pair**. Not corruption, but silent loss of half of the
+# measurement the 1.2.0 work exists to deliver, with nothing logged. Exact
+# dispatch makes an unknown length loud instead.
+SEC_LEN    = 76   # ts + v[3] a[3] w[3] hz[3] var[3] pf[3]
+MIN_LEN_V1 = 28   # ts + kwh[3] kvarh[3]                        (<= 1.1.x)
+MIN_LEN_V2 = 52   # ts + kwh_imp[3] kvarh_imp[3] kwh_exp[3] kvarh_exp[3]  (1.2.0)
+
+_rejects = {}     # (kind, len) -> count, so an unknown shape is reported once
+
+
+def _reject(kind, payload, unit):
+    n = len(payload)
+    key = (kind, n)
+    _rejects[key] = _rejects.get(key, 0) + 1
+    c = _rejects[key]
+    if c == 1 or c % 100 == 0:
+        print(f"[parser] REJECT {kind} from {unit}: {n} B is not a known length "
+              f"(x{c}) — record dropped, not guessed", flush=True)
+
+
+def decode_sec(payload):
+    """-> (ts, fields) or None. Pure: no I/O, so it is testable on its own."""
+    if len(payload) != SEC_LEN:
+        return None
+    f = struct.unpack('<I 3f 3f 3f 3f 3i 3f', payload)
+    return (f[0], f) if f[0] else None      # ts == 0 -> clock not set, skip
+
+
+def decode_min(payload):
+    """-> (ts, imp_kwh, imp_kvarh, exp_kwh, exp_kvarh) or None.
+
+    exp_* are None for a 1.1.x record — None, not 0.0: 'this unit does not
+    report export' and 'it exported nothing' are different facts, and writing
+    a zero would be a derived value the box never sent (philosophy P6).
+    """
+    n = len(payload)
+    if n == MIN_LEN_V1:
+        f = struct.unpack('<I 3f 3f', payload)
+        return (f[0], f[1:4], f[4:7], None, None) if f[0] else None
+    if n == MIN_LEN_V2:
+        f = struct.unpack('<I 3f 3f 3f 3f', payload)
+        return (f[0], f[1:4], f[4:7], f[7:10], f[10:13]) if f[0] else None
+    return None
+
+
 def handle_sec(unit, board, payload):
-    if len(payload) < 76:
+    d = decode_sec(payload)
+    if d is None:
+        if len(payload) != SEC_LEN:
+            _reject("sec", payload, unit)
         return
-    f = struct.unpack('<I 3f 3f 3f 3f 3i 3f', payload[:76])
-    ts = f[0]
-    if ts == 0:               # clock not set yet -> skip (no valid wall-clock)
-        return
+    ts, f = d
     ts_ns = ts * 1_000_000_000
     points = []
     for i, phase in enumerate(PHASES):
@@ -61,18 +115,26 @@ def handle_sec(unit, board, payload):
 
 
 def handle_min(unit, board, payload):
-    if len(payload) < 28:     # 28 B on the wire (struct _pad stripped by firmware)
+    d = decode_min(payload)
+    if d is None:
+        if len(payload) not in (MIN_LEN_V1, MIN_LEN_V2):
+            _reject("min", payload, unit)
         return
-    f = struct.unpack('<I 3f 3f', payload[:28])
-    ts = f[0]
-    if ts == 0:
-        return
+    ts, kwh, kvarh, kwh_exp, kvarh_exp = d
     ts_ns = ts * 1_000_000_000
     points = []
     for i, phase in enumerate(PHASES):
+        # Import keeps the existing field names `kwh`/`kvarh`: it is the same
+        # physical quantity these series have always carried, so every existing
+        # dashboard and query stays valid across the 1.2.0 shift. Export is
+        # additive, and simply absent for a 1.1.x record (W3 covers the Grafana
+        # side tolerating a missing series).
+        fields = f"kwh={kwh[i]},kvarh={kvarh[i]}"
+        if kwh_exp is not None:
+            fields += f",kwh_exp={kwh_exp[i]},kvarh_exp={kvarh_exp[i]}"
         points.append(
             f"energy,source={SOURCE},unit={unit},board={board},phase={phase} "
-            f"kwh={f[1+i]},kvarh={f[4+i]} {ts_ns}"
+            f"{fields} {ts_ns}"
         )
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record="\n".join(points))
 
@@ -101,10 +163,14 @@ def on_connect(client, userdata, flags, rc, properties=None):
     print(f"[MQTT] Subscribed to {len(UNITS)} board prefixes", flush=True)
 
 
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="zaxmodbus-parser")
-client.on_connect = on_connect
-client.on_message = on_message
+# Guarded so the module can be imported for its decode functions without
+# connecting to a broker or blocking in loop_forever(). The service runs this
+# file as a script, so this path is unchanged in production.
+if __name__ == "__main__":
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="zaxmodbus-parser")
+    client.on_connect = on_connect
+    client.on_message = on_message
 
-print(f"[PARSER] Connecting to {BROKER_HOST}:{BROKER_PORT} -> bucket {INFLUX_BUCKET} (source={SOURCE})", flush=True)
-client.connect(BROKER_HOST, BROKER_PORT, 60)
-client.loop_forever()
+    print(f"[PARSER] Connecting to {BROKER_HOST}:{BROKER_PORT} -> bucket {INFLUX_BUCKET} (source={SOURCE})", flush=True)
+    client.connect(BROKER_HOST, BROKER_PORT, 60)
+    client.loop_forever()
