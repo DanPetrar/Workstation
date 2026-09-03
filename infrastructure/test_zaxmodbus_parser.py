@@ -79,5 +79,25 @@ assert Z.decode_min(v2)[3] is not None, "1.2.0 record must carry export"
 for bad in (v2[:40], v2 + b"\x00", v1[:27], b""):
     assert Z.decode_min(bad) is None, f"zax_parser: len {len(bad)} must be rejected"
 
+# ── W1: timestamp plausibility ───────────────────────────────────────────────
+# A never-set clock sends boot-relative seconds, which land as 1970 points; a
+# corrupt far-future ts is worse, breaking last() and default dashboard ranges.
+import time as _t
+for mod in (P, Z):
+    name = mod.__name__
+    assert mod.MIN_TS == 1_577_836_800, name
+    assert not mod.ts_plausible(0),        f"{name}: ts=0 must be refused"
+    assert not mod.ts_plausible(42),       f"{name}: boot-relative ts must be refused"
+    assert not mod.ts_plausible(1_500_000_000), f"{name}: pre-2020 must be refused"
+    assert mod.ts_plausible(TS),           f"{name}: a real epoch must be accepted"
+    assert mod.ts_plausible(int(_t.time())), f"{name}: now must be accepted"
+    assert not mod.ts_plausible(int(_t.time()) + 10 * 86400), \
+        f"{name}: far-future ts must be refused"
+
+# and the decoders must actually apply it, not just define it
+for bad_ts in (0, 42, 1_500_000_000):
+    assert P.decode_min(struct.pack('<I 3f 3f', bad_ts, *IMP_KWH, *IMP_KVARH)) is None
+    assert Z.decode_min(struct.pack('<I 3f 3f', bad_ts, *IMP_KWH, *IMP_KVARH)) is None
+
 print("OK — exact-length dispatch in BOTH parsers: 28/52 min, 76 sec; "
-      "everything else rejected")
+      "implausible timestamps refused; everything else rejected")

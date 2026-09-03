@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import struct
+import time
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -30,6 +31,25 @@ SEC_LEN    = 76
 MIN_LEN_V1 = 28
 MIN_LEN_V2 = 52
 
+# ── timestamp plausibility (W1) ──────────────────────────────────────────────
+# A record whose clock was never set carries boot-relative seconds, which become
+# 1970 points in InfluxDB — the origin of the pre-2020 rows already in the
+# bucket. A corrupt far-future ts is worse still: it breaks `last()` and every
+# default dashboard range. Same floor as cal_parser.py and zax_gap_watch.py.
+#
+# NOTE (philosophy P2): dropping is NOT the intended end state. Data with no
+# valid timestamp should be MARKED and kept — stored under its arrival time and
+# flagged asynchronous — but the carrier for that mark is still undecided
+# (spec B19). Until it exists, refusing loudly beats writing a wrong time
+# silently, which is what happened before.
+MIN_TS = 1_577_836_800            # 2020-01-01
+MAX_SKEW_S = 86_400               # accept at most a day ahead of the receiver
+
+
+def ts_plausible(ts):
+    return MIN_TS <= ts <= (time.time() + MAX_SKEW_S)
+
+
 _rejects = {}
 
 
@@ -52,10 +72,10 @@ def decode_min(payload):
     n = len(payload)
     if n == MIN_LEN_V1:
         f = struct.unpack('<I 3f 3f', payload)
-        return (f[0], f[1:4], f[4:7], None, None)
+        return (f[0], f[1:4], f[4:7], None, None) if ts_plausible(f[0]) else None
     if n == MIN_LEN_V2:
         f = struct.unpack('<I 3f 3f 3f 3f', payload)
-        return (f[0], f[1:4], f[4:7], f[7:10], f[10:13])
+        return (f[0], f[1:4], f[4:7], f[7:10], f[10:13]) if ts_plausible(f[0]) else None
     return None
 
 
@@ -64,6 +84,9 @@ def handle_sec(unit_name, payload):
         _reject("sec", payload, unit_name)
         return
     f = struct.unpack('<I 3f 3f 3f 3f 3i 3f', payload)
+    if not ts_plausible(f[0]):
+        _reject("sec-ts", payload, unit_name)
+        return
     ts_ns = f[0] * 1_000_000_000
     points = []
     for i, phase in enumerate(PHASES):
@@ -78,7 +101,8 @@ def handle_sec(unit_name, payload):
 def handle_min(unit_name, payload):
     d = decode_min(payload)
     if d is None:
-        _reject("min", payload, unit_name)
+        _reject("min" if len(payload) not in (MIN_LEN_V1, MIN_LEN_V2) else "min-ts",
+                payload, unit_name)
         return
     ts, kwh, kvarh, kwh_exp, kvarh_exp = d
     ts_ns = ts * 1_000_000_000

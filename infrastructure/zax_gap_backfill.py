@@ -131,20 +131,42 @@ CHUNK_PAUSE_S = 0.5    # let the device drain its box backlog between chunks
 
 
 def _pull_csv(unit, kind, lo, hi):
+    """-> (rows, next_from). next_from is set when the device truncated the
+    window at EXPORT_MAX_ROWS and there is more to fetch from that timestamp."""
     url = f"http://{DEVICE_IPS[unit]}/api/export?type={kind}&from={lo}&to={hi}"
     with urllib.request.urlopen(url, timeout=60) as resp:
-        return list(csv.DictReader(io.StringIO(resp.read().decode())))
+        rows = list(csv.DictReader(io.StringIO(resp.read().decode())))
+        nf = resp.headers.get("X-Zax-Next-From")
+    return rows, (int(nf) if nf else None)
 
 
 def _pull_chunked(unit, kind, lo, hi):
     """Walk [lo, hi] in CHUNK_S slices so no single request stalls the device
-    past its comm-loss threshold. Returns {ts: row}."""
+    past its comm-loss threshold. Returns {ts: row}.
+
+    Follows X-Zax-Next-From (fw v1.1.30+) rather than assuming a slice fits in
+    one response. /api/export caps a reply at EXPORT_MAX_ROWS = 400 and reports
+    where to resume; CHUNK_S = 240 stays under that only because sec records are
+    1 Hz, so the cap was never hit and the header never read. Any change to
+    CHUNK_S, a denser cadence, or a min-record walk would silently have lost
+    every row past the 400th. Verified live 2026-09-03: a 700 s window returns
+    exactly 400 rows plus a next_from.
+    """
     out = {}
     start = lo
     while start <= hi:
         end = min(start + CHUNK_S - 1, hi)
-        for r in _pull_csv(unit, kind, start, end):
-            out[int(r["ts"])] = r
+        cursor = start
+        while cursor is not None and cursor <= end:
+            rows, nf = _pull_csv(unit, kind, cursor, end)
+            for r in rows:
+                out[int(r["ts"])] = r
+            if nf is None or not rows:
+                break
+            if nf <= cursor:          # device would not advance — stop rather than spin
+                break
+            cursor = nf
+            time.sleep(CHUNK_PAUSE_S)
         start = end + 1
         if start <= hi:
             time.sleep(CHUNK_PAUSE_S)
