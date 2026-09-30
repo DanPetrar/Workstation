@@ -106,7 +106,7 @@ The spec and the module are meant to leave the house anyway; nothing else is in 
 Extend: `sudo systemctl stop boxlink-download` then run the same `systemd-run` command again. When no longer needed:
 `rm -r /home/dan-linux/boxlink-download` (the files are copies, the release is the master).
 
-## 2026-09-30 19:5x (EEST) — boxlink download link stopped
+## 2026-09-30 19:46 (EEST) — boxlink download link stopped
 
 **What:** the package was handed over by the owner; `sudo systemctl stop boxlink-download` (the transient unit of the entry above). `:8090` no longer listens
 (verified with `ss` and `curl`). The two copies stay in `/home/dan-linux/boxlink-download/` (harmless, no service points at them); remove with
