@@ -82,3 +82,32 @@ request would have lost.**
 
 **Rollback:** restore `*.bak-20260903-12*` over each parser and restart; for W4,
 `git checkout` the previous commit in the ws checkout.
+
+## 2026-09-30 19:30 (EEST) — temporary LAN download of the boxlink 0.1.0 package (port 8090, auto-stops after 24 h)
+
+**What:** copied `boxlink-0.1.0.tar.gz` and `boxlink-0.1.0.tar.gz.sha256` (from the raspi, `~/ZaxModbus/boxlink/package/out/`) to
+`/home/dan-linux/boxlink-download/` on the Workstation and started a **transient** systemd unit
+`boxlink-download.service` (`sudo systemd-run --unit=boxlink-download --property=RuntimeMaxSec=86400 --uid=dan-linux
+python3 -m http.server 8090 --bind 192.168.20.11 --directory /home/dan-linux/boxlink-download`). No file under `/etc` or `/opt` was
+touched, no permanent unit, nothing survives a reboot. Nothing existing was changed: `:8080` (`cal_reports`) is untouched.
+
+**Why:** the owner personally hands the package to the box developer and wanted a download link inside the LAN:
+`http://192.168.20.11:8090/boxlink-0.1.0.tar.gz` (checksum file next to it, directory listing shows only those two files).
+Package sha256 `5c0421b818bbf351d65a929649b5bd88c02255f4309dadd5501c54ca7da6295e`. Source of truth: the private GitHub release
+`boxlink-0.1.0` of `DanPetrar/ZaxModbus`.
+
+**Exposure:** plain HTTP, no authentication, LAN only (ufw is inactive, so anything on 192.168.20.0/24 can fetch the two files).
+The spec and the module are meant to leave the house anyway; nothing else is in that directory.
+
+**Verified:** from the raspi, `curl` gets HTTP 200, the downloaded tarball passes `sha256sum -c`, `ss -ltn` shows only
+`192.168.20.11:8090` for the unit, `systemctl show boxlink-download -p RuntimeMaxUSec` = 1d.
+
+**Stop / extend / clean up:** the unit stops itself 24 h after 2026-09-30 19:30:34 EEST. Stop earlier: `sudo systemctl stop boxlink-download`.
+Extend: `sudo systemctl stop boxlink-download` then run the same `systemd-run` command again. When no longer needed:
+`rm -r /home/dan-linux/boxlink-download` (the files are copies, the release is the master).
+
+## 2026-09-30 19:5x (EEST) — boxlink download link stopped
+
+**What:** the package was handed over by the owner; `sudo systemctl stop boxlink-download` (the transient unit of the entry above). `:8090` no longer listens
+(verified with `ss` and `curl`). The two copies stay in `/home/dan-linux/boxlink-download/` (harmless, no service points at them); remove with
+`rm -r /home/dan-linux/boxlink-download` when wanted. The master is the private GitHub release `boxlink-0.1.0`.
