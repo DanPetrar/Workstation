@@ -111,3 +111,31 @@ Extend: `sudo systemctl stop boxlink-download` then run the same `systemd-run` c
 **What:** the package was handed over by the owner; `sudo systemctl stop boxlink-download` (the transient unit of the entry above). `:8090` no longer listens
 (verified with `ss` and `curl`). The two copies stay in `/home/dan-linux/boxlink-download/` (harmless, no service points at them); remove with
 `rm -r /home/dan-linux/boxlink-download` when wanted. The master is the private GitHub release `boxlink-0.1.0`.
+
+## 2026-10-13 17:57 (EEST) — PS-Z001 (first new-hardware unit) added to zax-parser and to Grafana
+
+**What:**
+1. `/opt/zax-parser/zax_parser.py`: one entry added to `UNITS` — `"zax_E49218": "PS-Z001"` — and `zax-parser.service` restarted
+   at 17:57:45. Backup: `zax_parser.py.bak-20261013-175745`. Repo source: `infrastructure/zax_parser.py` (same change; the deployed
+   copy differs from the repo only in the InfluxDB token, as before).
+2. Grafana `zax-power` (v15 -> v16): `PS-Z001` added to the custom `unit` variable (options were `Unit_A`, `Unit_C`). The repo copy
+   `infrastructure/grafana-power-dashboard.json` was re-exported from the live dashboard with the documented command; it had been
+   an older bare-dashboard file, so its diff is large and is not only this change.
+3. Grafana `zax-energy` (v2 -> v3): the repo dashboard of commit `767a544` (W3: separate import and export targets on both panels)
+   imported; it had been in the repo since 2026-09-03 but never imported. The live v2 was still the two-panel version provisioned
+   by I-004 (compared before the import).
+Backups of both live dashboards as returned by the API: `/home/dan-linux/grafana-backup-zax-power-20261013-175935.json`,
+`/home/dan-linux/grafana-backup-zax-energy-20261013-175935.json`.
+
+**Why:** PS-Z001 (NEW-BOX + S3-Zero, MAC `3C:0F:02:E4:92:18`, firmware 1.2.1, publishing `zax_E49218/sec` 76 B and `/min` 52 B to this
+broker since 17:55) must be visible in Grafana so the owner can judge the validity of the new hardware's data.
+
+**Effect on other units:** the parser restart took ~4 s; `/sec` and `/min` messages of Unit_A-D published in that window were not
+written (QoS 0, no retry in the parser). No other service was touched.
+
+**Verified:** journal shows `Subscribed to zax_E49218/#` and no `REJECT` line in the 3 minutes after; InfluxDB `zaxenergy`:
+measurement `power`, `unit=PS-Z001`, 86 points per field in the first 86 s; measurement `energy` with `kwh`, `kvarh`, `kwh_exp`,
+`kvarh_exp` per phase (20.218 / 20.224 / 27.944 kWh, 17.796 / 17.811 / 25.053 kvarh imported, 0 exported — the values the BOX sends).
+
+**Undo:** restore the parser backup and restart `zax-parser`; re-post the two dashboard backups (`POST /api/dashboards/db` with
+`overwrite: true`). Data already written for `unit=PS-Z001` stays in the bucket.
