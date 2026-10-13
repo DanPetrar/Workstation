@@ -158,3 +158,18 @@ change (since 2026-08-01, with two older `.bak-*` files beside it); this edit ad
 return 200.
 
 **Undo:** copy the backup over `serve.py` and `sudo systemctl restart cal_reports`.
+
+## 2026-10-13 18:16 (EEST) — Grafana `zax-energy`: unit selector
+
+**What:** `zax-energy` v3 -> v4: a dashboard variable `unit` (type query, values = the `unit` tag values that have `energy` data in
+the last 30 days, with an "All" entry = `.*`, single selection, default All) and the filter `r.unit =~ /^${unit:raw}$/` added to
+the four targets (import and export on both panels). Repo copy: `infrastructure/grafana-energy-dashboard.json`. Backup of the
+live v3 as returned by the API: `/home/dan-linux/grafana-backup-zax-energy-20261013-181600.json`.
+Also `serve.py` (`:8080/zax`): the PS-Z001 energy link now carries `?var-unit=PS-Z001`; `cal_reports` restarted again (18:17).
+
+**Why:** owner's request: be able to show a single unit on the energy dashboard (it showed every unit together).
+
+**Verified before saving:** the variable query returns `PS-Z001`, `Unit_A`, `Unit_B`; a panel query over 15 minutes returns 45 points
+for `unit = PS-Z001` alone, and both PS-Z001 and Unit_B with `.*`. After saving: live v4 has the variable. Not checked in a browser.
+
+**Undo:** re-post the v3 backup (`POST /api/dashboards/db`, `overwrite: true`).
