@@ -139,3 +139,22 @@ measurement `power`, `unit=PS-Z001`, 86 points per field in the first 86 s; meas
 
 **Undo:** restore the parser backup and restart `zax-parser`; re-post the two dashboard backups (`POST /api/dashboards/db` with
 `overwrite: true`). Data already written for `unit=PS-Z001` stays in the bucket.
+
+## 2026-10-13 18:11 (EEST) — PS-Z001 Grafana links on the web entry page (`:8080/zax`)
+
+**What:** `/workspace/projects/EnergyCalibrator/reports/serve.py` (the `cal_reports` page server, `:8080`): one card added to the
+ZaxEnergy page (`_zax_page()`), "New hardware -> Grafana", with two links — `zax-power/?var-unit=PS-Z001` and `zax-energy/`.
+`cal_reports.service` restarted at 18:11:28. Backup: `serve.py.bak-20261013-181128` next to the file.
+
+**Why:** owner's request: links to Grafana for PS-Z001 on the workstation web entry page.
+
+**Not changed:** `ZAX_UNITS` (the four existing unit buttons), the other pages, `cal_collector` (the running calibration session's
+collector is a separate service and was not restarted).
+
+**State of that file in git:** `serve.py` was already modified and uncommitted in the WS clone of `EnergyCalibrator` before this
+change (since 2026-08-01, with two older `.bak-*` files beside it); this edit adds to that uncommitted state, it was not committed.
+
+**Verified:** `http://192.168.20.11:8080/zax` returns 200 from the raspi and shows the card with both links; `/` and `/zaxmodbus`
+return 200.
+
+**Undo:** copy the backup over `serve.py` and `sudo systemctl restart cal_reports`.
