@@ -173,3 +173,25 @@ Also `serve.py` (`:8080/zax`): the PS-Z001 energy link now carries `?var-unit=PS
 for `unit = PS-Z001` alone, and both PS-Z001 and Unit_B with `.*`. After saving: live v4 has the variable. Not checked in a browser.
 
 **Undo:** re-post the v3 backup (`POST /api/dashboards/db`, `overwrite: true`).
+
+## 2026-10-15 20:38-20:50 — Grafana `zax-power` v16 -> v18: energy table, injected + reactive energy, units, R/S/T legends
+
+**What (owner `go`, review items M1 M2 E2 E4, `ZaxModbus/Doc/grafana/zax-power-review-20261015.md`):** via the Grafana API.
+v17: units + decimals on the 6 power panels (V 1, A 2, W 0, Hz 2, PF 2 with -1..1, var 0), legend `${__field.labels.phase}`
+on those and on "Active Energy per minute"; new panels at the bottom: 103 table "Energy in range" (R/S/T/total x kWh cons,
+kvarh cons, kWh inj, kvarh inj; first difference taken from the last record before the range, like `hourly.py`), 104
+"Injected Active Energy per minute (kWh)", 105 "Reactive Energy per minute (kvarh)" (legend "R consumed" ...).
+v18: table column order (organize transformation). Existing panels otherwise unchanged.
+**Backup:** `/home/dan-linux/grafana-backup-zax-power-20261015-203802.json` (v16); Grafana version history.
+**Verified:** table query for PS-Z001 19:00-20:00 = hourly report total 0.018 / 0.042 / 0.009 / 0.082 and per phase;
+`/api/ds/query` last hour: power panels 3 frames labelled R/S/T, table 4 rows, kvarh panel 6 frames (phase x dir), no errors.
+Repo export `infrastructure/grafana-power-dashboard.json` updated to v18.
+
+## 2026-10-15 20:54-20:56 — Grafana `zax-power` v18 -> v19 (owner's layout, owner `go`)
+
+Injected row directly under the consumed row: 104 "Injected Active Energy per minute (kWh)" (now the same query as panel
+100 on `kwh_exp`) + new stat 106 "Injected Active Energy (kWh)" (copy of 101 on `kwh_exp`). Owner: no reactive energy in
+this dashboard -> panel 105 deleted, "Energy in range" reduced to Phase / kWh consumed / kWh injected ("Reactive Power
+(VAr)" panel kept: power, not energy). Panels below moved down 8 rows. Backup `/home/dan-linux/grafana-backup-zax-power-
+20261015-205448.json` (v18). Verified: no `kvarh` in the dashboard; PS-Z001 19:00-20:00 stat injected T 0.009 / Total
+0.009, table kWh 0.018 / 0.009 = hourly report; `/api/ds/query` last hour: 104 3 frames, 106 4 values, 103 4 rows, no errors.
