@@ -86,7 +86,7 @@ import time as _t
 for mod in (P, Z):
     name = mod.__name__
     assert mod.MIN_TS == 1_577_836_800, name
-    assert not mod.ts_plausible(0),        f"{name}: ts=0 must be refused"
+    assert not mod.ts_plausible(0),        f"{name}: ts=0 is not a plausible TIME (zax_parser accepts it as a mark via ts_ok)"
     assert not mod.ts_plausible(42),       f"{name}: boot-relative ts must be refused"
     assert not mod.ts_plausible(1_500_000_000), f"{name}: pre-2020 must be refused"
     assert mod.ts_plausible(TS),           f"{name}: a real epoch must be accepted"
@@ -97,7 +97,37 @@ for mod in (P, Z):
 # and the decoders must actually apply it, not just define it
 for bad_ts in (0, 42, 1_500_000_000):
     assert P.decode_min(struct.pack('<I 3f 3f', bad_ts, *IMP_KWH, *IMP_KVARH)) is None
+for bad_ts in (42, 1_500_000_000, int(_t.time()) + 10 * 86400):
     assert Z.decode_min(struct.pack('<I 3f 3f', bad_ts, *IMP_KWH, *IMP_KVARH)) is None
+
+# ── time-spec T4 (2026-10-21): the bench parser keeps a ts = 0 record, at arrival time, marked async=1i ──────────────────
+# The fleet parser (P) does not: it still refuses ts = 0 (asserted above). Z.write_api is captured here; nothing is written anywhere.
+wrote = []
+Z.write_api = types.SimpleNamespace(write=lambda **kw: wrote.append(kw["record"]))
+sec0 = struct.pack('<I 3f 3f 3f 3f 3i 3f', 0, *(1.0,)*3, *(2.0,)*3, *(3.0,)*3, *(50.0,)*3, *(4,)*3, *(0.9,)*3)
+min0 = struct.pack('<I 3f 3f 3f 3f', 0, *IMP_KWH, *IMP_KVARH, *EXP_KWH, *EXP_KVARH)
+t_a = int(_t.time())
+Z.handle_sec("PS-Z001", sec0); Z.handle_min("PS-Z001", min0)
+t_b = int(_t.time())
+assert len(wrote) == 2, f"ts=0 SEC and MIN must both be written, got {len(wrote)} writes"
+for rec in wrote:
+    lines = rec.split("\n")
+    assert len(lines) == 3, f"3 phases expected, got {lines}"
+    for ln in lines:
+        assert ln.endswith(" ") is False and ",async=1i " in ln, f"ts=0 point without the async mark: {ln}"
+        ns = int(ln.rsplit(" ", 1)[1])
+        assert t_a * 10**9 <= ns <= t_b * 10**9, f"ts=0 point must carry the arrival time, got {ns}"
+wrote.clear()
+Z.handle_sec("PS-Z001", sec); Z.handle_min("PS-Z001", v2)
+assert len(wrote) == 2 and all("async" not in r for r in wrote), "a timed record must carry no async mark"
+assert all(int(ln.rsplit(" ", 1)[1]) == TS * 10**9 for ln in wrote[0].split("\n")), "a timed SEC point keeps the unit time"
+wrote.clear()
+for bad_ts in (42, 1_500_000_000, int(_t.time()) + 10 * 86400):
+    Z.handle_sec("PS-Z001", struct.pack('<I 3f 3f 3f 3f 3i 3f', bad_ts, *(1.0,)*3, *(2.0,)*3, *(3.0,)*3, *(50.0,)*3, *(4,)*3, *(0.9,)*3))
+    Z.handle_min("PS-Z001", struct.pack('<I 3f 3f 3f 3f', bad_ts, *IMP_KWH, *IMP_KVARH, *EXP_KWH, *EXP_KVARH))
+assert wrote == [], f"1..2019 and far-future ts are faults and must be refused, but written: {wrote}"
+v1_0 = struct.pack('<I 3f 3f', 0, *IMP_KWH, *IMP_KVARH)
+assert Z.decode_min(v1_0)[0] == 0, "1.1.x length with ts=0 decodes in the bench parser too"
 
 print("OK — exact-length dispatch in BOTH parsers: 28/52 min, 76 sec; "
       "implausible timestamps refused; everything else rejected")

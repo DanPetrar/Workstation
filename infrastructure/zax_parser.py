@@ -51,6 +51,20 @@ def ts_plausible(ts):
     return MIN_TS <= ts <= (time.time() + MAX_SKEW_S)
 
 
+# New hardware (time-spec T4/D2/D3): a unit with no real time sends ts = 0 on purpose. Such a record is kept, stored at
+# the ARRIVAL time and marked `async=1i`; any other implausible ts (1..2019, far future) is still a fault and refused.
+def ts_ok(ts):
+    return ts == 0 or ts_plausible(ts)
+
+
+def _time_ns(ts):
+    return (int(time.time()) if ts == 0 else ts) * 1_000_000_000
+
+
+def _mark(ts):
+    return ",async=1i" if ts == 0 else ""
+
+
 _rejects = {}
 
 
@@ -73,10 +87,10 @@ def decode_min(payload):
     n = len(payload)
     if n == MIN_LEN_V1:
         f = struct.unpack('<I 3f 3f', payload)
-        return (f[0], f[1:4], f[4:7], None, None) if ts_plausible(f[0]) else None
+        return (f[0], f[1:4], f[4:7], None, None) if ts_ok(f[0]) else None
     if n == MIN_LEN_V2:
         f = struct.unpack('<I 3f 3f 3f 3f', payload)
-        return (f[0], f[1:4], f[4:7], f[7:10], f[10:13]) if ts_plausible(f[0]) else None
+        return (f[0], f[1:4], f[4:7], f[7:10], f[10:13]) if ts_ok(f[0]) else None
     return None
 
 
@@ -85,16 +99,16 @@ def handle_sec(unit_name, payload):
         _reject("sec", payload, unit_name)
         return
     f = struct.unpack('<I 3f 3f 3f 3f 3i 3f', payload)
-    if not ts_plausible(f[0]):
+    if not ts_ok(f[0]):
         _reject("sec-ts", payload, unit_name)
         return
-    ts_ns = f[0] * 1_000_000_000
+    ts_ns = _time_ns(f[0])
     points = []
     for i, phase in enumerate(PHASES):
         points.append(
             f"power,unit={unit_name},phase={phase} "
             f"v={f[1+i]},a={f[4+i]},w={f[7+i]},hz={f[10+i]},"
-            f"var={f[13+i]}i,pf={f[16+i]} {ts_ns}"
+            f"var={f[13+i]}i,pf={f[16+i]}{_mark(f[0])} {ts_ns}"
         )
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record="\n".join(points))
 
@@ -106,7 +120,7 @@ def handle_min(unit_name, payload):
                 payload, unit_name)
         return
     ts, kwh, kvarh, kwh_exp, kvarh_exp = d
-    ts_ns = ts * 1_000_000_000
+    ts_ns = _time_ns(ts)
     points = []
     for i, phase in enumerate(PHASES):
         # Import keeps the existing field names so current dashboards and
@@ -114,6 +128,7 @@ def handle_min(unit_name, payload):
         fields = f"kwh={kwh[i]},kvarh={kvarh[i]}"
         if kwh_exp is not None:
             fields += f",kwh_exp={kwh_exp[i]},kvarh_exp={kvarh_exp[i]}"
+        fields += _mark(ts)
         points.append(
             f"energy,unit={unit_name},phase={phase} {fields} {ts_ns}"
         )
