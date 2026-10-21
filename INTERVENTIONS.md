@@ -195,3 +195,15 @@ this dashboard -> panel 105 deleted, "Energy in range" reduced to Phase / kWh co
 (VAr)" panel kept: power, not energy). Panels below moved down 8 rows. Backup `/home/dan-linux/grafana-backup-zax-power-
 20261015-205448.json` (v18). Verified: no `kvarh` in the dashboard; PS-Z001 19:00-20:00 stat injected T 0.009 / Total
 0.009, table kWh 0.018 / 0.009 = hourly report; `/api/ds/query` last hour: 104 3 frames, 106 4 values, 103 4 rows, no errors.
+
+## 2026-10-21 16:43 (EEST) — zax-parser: `ts = 0` accepted (new hardware, time-spec T4; owner `go`)
+
+**What:** `/opt/zax-parser/zax_parser.py` replaced by the repo file of commit `404896a` (token re-injected from the previous deployed copy, never printed
+or committed) and `zax-parser.service` restarted 16:43:49. A record with `ts = 0` is now written at its arrival time with the field `async=1i`
+(SEC `power` and MIN `energy` points); `1 <= ts < 2020-01-01` and far-future `ts` are still refused. Timed records are unchanged. The fleet parser
+`zaxmodbus_parser.py` is untouched. Reason: the firmware of the new hardware will send `ts = 0` while it has no real time (D2); this parser had to
+accept it first.
+**Backup:** `/opt/zax-parser/zax_parser.py.bak-20261021-164349`. **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261021-164349
+/opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+**Verified:** deployed file minus the token line = repo file; service active; journal: Connected, Subscribed to the 5 unit prefixes, no error in 60 s.
+**Not verified:** a real `ts = 0` record in InfluxDB (needs PS-Z001 running the firmware that sends it: time-spec step 3). `ws` git checkout not pulled.
