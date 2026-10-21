@@ -57,8 +57,17 @@ def ts_ok(ts):
     return ts == 0 or ts_plausible(ts)
 
 
+_last_arrival_ns = 0
+
+
 def _time_ns(ts):
-    return (int(time.time()) if ts == 0 else ts) * 1_000_000_000
+    """Point time of a record. ts = 0 (no real time on the unit): the arrival time in ns, strictly increasing, so records that arrive in
+    the same second (a replay batch) do not overwrite each other in InfluxDB. The three phase points of one message share the value."""
+    global _last_arrival_ns
+    if ts != 0:
+        return ts * 1_000_000_000
+    _last_arrival_ns = max(time.time_ns(), _last_arrival_ns + 1)
+    return _last_arrival_ns
 
 
 def _mark(ts):

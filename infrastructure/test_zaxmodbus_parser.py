@@ -106,9 +106,9 @@ wrote = []
 Z.write_api = types.SimpleNamespace(write=lambda **kw: wrote.append(kw["record"]))
 sec0 = struct.pack('<I 3f 3f 3f 3f 3i 3f', 0, *(1.0,)*3, *(2.0,)*3, *(3.0,)*3, *(50.0,)*3, *(4,)*3, *(0.9,)*3)
 min0 = struct.pack('<I 3f 3f 3f 3f', 0, *IMP_KWH, *IMP_KVARH, *EXP_KWH, *EXP_KVARH)
-t_a = int(_t.time())
+t_a = _t.time_ns()
 Z.handle_sec("PS-Z001", sec0); Z.handle_min("PS-Z001", min0)
-t_b = int(_t.time())
+t_b = _t.time_ns()
 assert len(wrote) == 2, f"ts=0 SEC and MIN must both be written, got {len(wrote)} writes"
 for rec in wrote:
     lines = rec.split("\n")
@@ -116,7 +116,8 @@ for rec in wrote:
     for ln in lines:
         assert ln.endswith(" ") is False and ",async=1i " in ln, f"ts=0 point without the async mark: {ln}"
         ns = int(ln.rsplit(" ", 1)[1])
-        assert t_a * 10**9 <= ns <= t_b * 10**9, f"ts=0 point must carry the arrival time, got {ns}"
+        assert t_a <= ns <= t_b, f"ts=0 point must carry the arrival time in ns ({t_a} .. {t_b}), got {ns}"
+    assert len({ln.rsplit(" ", 1)[1] for ln in lines}) == 1, "the three phase points of one message share one time"
 wrote.clear()
 Z.handle_sec("PS-Z001", sec); Z.handle_min("PS-Z001", v2)
 assert len(wrote) == 2 and all("async" not in r for r in wrote), "a timed record must carry no async mark"
@@ -126,6 +127,22 @@ for bad_ts in (42, 1_500_000_000, int(_t.time()) + 10 * 86400):
     Z.handle_sec("PS-Z001", struct.pack('<I 3f 3f 3f 3f 3i 3f', bad_ts, *(1.0,)*3, *(2.0,)*3, *(3.0,)*3, *(50.0,)*3, *(4,)*3, *(0.9,)*3))
     Z.handle_min("PS-Z001", struct.pack('<I 3f 3f 3f 3f', bad_ts, *IMP_KWH, *IMP_KVARH, *EXP_KWH, *EXP_KVARH))
 assert wrote == [], f"1..2019 and far-future ts are faults and must be refused, but written: {wrote}"
+# 200 records in a row (a replay batch): 200 distinct, strictly increasing point times; also when the clock reads equal or steps back
+def point_time(fn, payload):
+    wrote.clear(); fn("PS-Z001", payload); return int(wrote[0].split("\n")[0].rsplit(" ", 1)[1])
+times = [point_time(Z.handle_sec, sec0) for _ in range(200)]
+assert all(b > a for a, b in zip(times, times[1:])), "ts=0 points of one batch must have strictly increasing times"
+assert len(set(times)) == 200, "ts=0 points of one batch must not collide"
+real_ns = _t.time_ns
+try:
+    fixed = real_ns() + 10**12                                   # a clock reading far ahead...
+    _t.time_ns = lambda: fixed; a1 = point_time(Z.handle_sec, sec0); a2 = point_time(Z.handle_min, min0)
+    assert a2 == a1 + 1, "same clock reading twice: the second point is one ns later"
+    _t.time_ns = lambda: fixed - 5 * 10**9; a3 = point_time(Z.handle_sec, sec0)   # ...then the clock steps back 5 s
+    assert a3 == a2 + 1, "a clock step back must not move the point time backwards"
+finally:
+    _t.time_ns = real_ns
+wrote.clear()
 v1_0 = struct.pack('<I 3f 3f', 0, *IMP_KWH, *IMP_KVARH)
 assert Z.decode_min(v1_0)[0] == 0, "1.1.x length with ts=0 decodes in the bench parser too"
 
