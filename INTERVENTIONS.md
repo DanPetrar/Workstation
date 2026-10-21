@@ -207,3 +207,14 @@ accept it first.
 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
 **Verified:** deployed file minus the token line = repo file; service active; journal: Connected, Subscribed to the 5 unit prefixes, no error in 60 s.
 **Not verified:** a real `ts = 0` record in InfluxDB (needs PS-Z001 running the firmware that sends it: time-spec step 3). `ws` git checkout not pulled.
+
+## 2026-10-21 18:54 (EEST) — zax-parser: `ts = 0` points at arrival time in ns (owner `go`)
+
+**What:** `/opt/zax-parser/zax_parser.py` replaced by the repo file of commit `00f01fd` (token re-injected from the previous deployed copy, never printed or
+committed) and `zax-parser.service` restarted 18:54:12. A `ts = 0` record (new hardware, no real time) is written at its arrival time in **nanoseconds**,
+strictly increasing (`max(time_ns, last + 1)`); until now the arrival time was whole seconds, so records of one second overwrote each other (a replay batch of
+200 would have collapsed to about one point). The `async=1i` mark, timed records and the fleet parser `zaxmodbus_parser.py` are unchanged.
+**Backup:** `/opt/zax-parser/zax_parser.py.bak-20261021-185412`. **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261021-185412
+/opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+**Verified:** deployed file minus the token line = repo file; service active; journal: Connected, Subscribed to the 5 unit prefixes, no error in 70 s.
+**Not verified:** a real `ts = 0` point in InfluxDB (needs PS-Z001 running the 1.2.14 firmware: time-spec step 3). `ws` git checkout not pulled.
