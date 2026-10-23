@@ -218,3 +218,16 @@ strictly increasing (`max(time_ns, last + 1)`); until now the arrival time was w
 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
 **Verified:** deployed file minus the token line = repo file; service active; journal: Connected, Subscribed to the 5 unit prefixes, no error in 70 s.
 **Not verified:** a real `ts = 0` point in InfluxDB (needs PS-Z001 running the 1.2.14 firmware: time-spec step 3). `ws` git checkout not pulled.
+
+## 2026-10-23 15:14 (EEST) — temporary LAN page for the PS-Z001 weekend runs (port 8091, auto-stops after 5 days)
+
+**What:** directory `/home/dan-linux/psz001-status/` created and a **transient** systemd unit `psz001-status.service` started
+(`sudo systemd-run --unit=psz001-status --property=RuntimeMaxSec=432000 --uid=dan-linux python3 -m http.server 8091 --bind
+192.168.20.11 --directory /home/dan-linux/psz001-status`). No file under `/etc` or `/opt` was touched, no permanent unit,
+nothing survives a reboot. Nothing existing was changed: `:8080` (`cal_reports`) is untouched.
+
+**Why:** owner 2026-10-23: "show each hour an overview report for current status" of the weekend soak runs. The raspi
+(`ZaxModbus-PS/tools/zaxtest/soak_overview.py`, called by `soak_run --publish` after each judged hour) copies
+`<run>.html` and `index.html` there with `scp`. Page: `http://192.168.20.11:8091/`.
+
+**Undo:** `sudo systemctl stop psz001-status` (or wait for the 5 days), then `rm -r /home/dan-linux/psz001-status`.
