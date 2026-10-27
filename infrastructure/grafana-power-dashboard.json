@@ -558,35 +558,21 @@
     "templating": {
       "list": [
         {
-          "current": {
-            "text": "Unit_A",
-            "value": "Unit_A"
+          "current": {},
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ffnbf64waxe68a"
           },
+          "hide": 0,
+          "includeAll": false,
           "label": "Unit",
+          "multi": false,
           "name": "unit",
-          "options": [
-            {
-              "selected": true,
-              "text": "Unit_A",
-              "value": "Unit_A"
-            },
-            {
-              "selected": false,
-              "text": "Unit_C",
-              "value": "Unit_C"
-            },
-            {
-              "selected": false,
-              "text": "PS-Z001",
-              "value": "PS-Z001"
-            },
-            {
-              "selected": false,
-              "text": "PS-E002",
-              "value": "PS-E002"
-            }
-          ],
-          "type": "custom"
+          "options": [],
+          "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"zaxenergy\", tag: \"unit\", predicate: (r) => r._measurement == \"power\", start: -30d)",
+          "refresh": 1,
+          "sort": 1,
+          "type": "query"
         }
       ]
     },
@@ -597,7 +583,7 @@
     "timezone": "browser",
     "title": "ZaxEnergy \u2014 Power",
     "uid": "zax-power",
-    "version": 20
+    "version": 21
   },
   "overwrite": true
 }

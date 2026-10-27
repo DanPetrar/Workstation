@@ -254,3 +254,43 @@ the first ~90 s; Grafana `unit` options Unit_A, Unit_C, PS-Z001, PS-E002.
 
 **Undo:** restore the parser backup and restart `zax-parser`; re-post the dashboard backup (`POST /api/dashboards/db` with
 `overwrite: true`).
+
+## 2026-10-27 19:42 (EET) — `:8080/zax` "New hardware" card: one list for all new units, PS-E002 added (owner `go`)
+
+**What:** `/workspace/projects/EnergyCalibrator/reports/serve.py` (`cal_reports`): `NEW_UNITS = ['PS-Z001', 'PS-E002']` added
+beside `ZAX_UNITS`; the "New hardware -> Grafana" card of `_zax_page()` now builds one Power (`zax-power/?var-unit=<u>`) and one
+Energy (`zax-energy/?var-unit=<u>`) button per unit from that list, instead of the two hand-written PS-Z001 links of 2026-10-13
+18:11/18:17. A new unit = one name in `NEW_UNITS`. `cal_reports.service` restarted at 19:42:48. Backup:
+`serve.py.bak-20261027-194248` next to the file.
+
+**Why:** owner: PS-E002 in the workstation page's new-hardware selection like PS-Z001, unified so any unit can be selected. The
+17:34 entry above (parser + `zax-power`) missed this page: the 2026-10-13 18:11 entry was not read when planning it.
+
+**Not changed:** `ZAX_UNITS`, the other pages, `cal_collector` (still active). As on 2026-10-13, `serve.py` stays uncommitted in
+the WS clone of `EnergyCalibrator` (already modified since 2026-08-01).
+
+**Verified:** `/zax`, `/` and `/zaxmodbus` return 200 from the raspi; `/zax` shows PS-Z001 and PS-E002, each with Power and
+Energy (import / export) links carrying `?var-unit=<unit>`.
+
+**Undo:** copy `serve.py.bak-20261027-194248` over `serve.py` and `sudo systemctl restart cal_reports`.
+
+## 2026-10-27 19:49 (EET) — one link per dashboard; Power unit list from Influx, as Energy (owner `go`)
+
+**What:**
+1. Grafana `zax-power` (v20 -> v21): the `unit` variable is now the same kind as on `zax-energy` — type query, values = the
+   `unit` tag values with `power` data in the last 30 days, refreshed on dashboard load, single selection, no "All" (the Power
+   panels filter `r.unit == "${unit}"`). Today: PS-E002, PS-Z001, Unit_B (Unit_A, Unit_C left the list: no `power` data in
+   `zaxenergy` in 30 days). Backup: `/home/dan-linux/grafana-backup-zax-power-20261027-194935.json`. Repo copy re-exported.
+2. `serve.py` (`:8080/zax`): one card "Grafana" with two links, Power and Energy, without a unit; the unit is chosen in the
+   dashboard. Removed: the Unit_A-D buttons (`ZAX_UNITS`), the New hardware card and `NEW_UNITS` (19:42 entry above).
+   The `.chart-btn` style of that page is left in place, unused. `cal_reports` restarted 19:50:07. Backup:
+   `serve.py.bak-20261027-195007`. Still uncommitted in the WS clone of `EnergyCalibrator`, as before.
+
+**Why:** owner: keep a single link to Power and to Energy and select the unit in Grafana; a new unit then appears in both
+dashboards by itself (no parser-side or page edit needed beyond the zax-parser `UNITS` entry).
+
+**Verified:** Grafana datasource query of the new variable returns PS-E002, PS-Z001, Unit_B; `/zax`, `/`, `/zaxmodbus` 200;
+`/zax` shows the two links; `cal_collector` still active.
+
+**Undo:** re-post the dashboard backup (`POST /api/dashboards/db`, `overwrite: true`); copy `serve.py.bak-20261027-195007`
+(or `-194248` for the 19:42 state) over `serve.py` and `sudo systemctl restart cal_reports`.
