@@ -1,7 +1,6 @@
 {
   "folderUid": "",
   "dashboard": {
-    "id": 1440555146780672,
     "panels": [
       {
         "datasource": {
@@ -580,6 +579,11 @@
               "selected": false,
               "text": "PS-Z001",
               "value": "PS-Z001"
+            },
+            {
+              "selected": false,
+              "text": "PS-E002",
+              "value": "PS-E002"
             }
           ],
           "type": "custom"
@@ -591,9 +595,9 @@
       "to": "now"
     },
     "timezone": "browser",
-    "title": "ZaxEnergy — Power",
+    "title": "ZaxEnergy \u2014 Power",
     "uid": "zax-power",
-    "version": 19
+    "version": 20
   },
   "overwrite": true
 }

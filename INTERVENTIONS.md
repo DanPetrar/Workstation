@@ -231,3 +231,26 @@ nothing survives a reboot. Nothing existing was changed: `:8080` (`cal_reports`)
 `<run>.html` and `index.html` there with `scp`. Page: `http://192.168.20.11:8091/`.
 
 **Undo:** `sudo systemctl stop psz001-status` (or wait for the 5 days), then `rm -r /home/dan-linux/psz001-status`.
+
+## 2026-10-27 17:34 (EET) — PS-E002 (NEW-BOX + S3-ETH) added to zax-parser and to Grafana `zax-power` (owner `now`)
+
+**What:**
+1. `/opt/zax-parser/zax_parser.py`: one entry added to `UNITS` — `"zax_849DEC": "PS-E002"` — and `zax-parser.service` restarted
+   at 17:34:01.99. Backup: `zax_parser.py.bak-20261027-173401`. Repo source `infrastructure/zax_parser.py`: same change (deployed
+   copy = repo except the InfluxDB token, checked by diff). A `py_compile` check created `/opt/zax-parser/__pycache__/`; removed.
+2. Grafana `zax-power` (v19 -> v20): `PS-E002` added to the custom `unit` variable (via the API). Backup as returned by the API:
+   `/home/dan-linux/grafana-backup-zax-power-20261027-173442.json`. Repo copy re-exported with the documented command (this
+   also drops `id` and writes the title's dash as `—`).
+
+**Why:** PS-E002 (MAC STA `E8:F6:0A:84:9D:EC`, ETH `EE:F6:0A:84:9D:ED`, fw 1.2.16, topic `zax_849DEC`) is on the bench since
+2026-10-27 with the BOX link running; its data must be visible in Grafana.
+
+**Effect on other units:** the parser restart (~4 s) drops `/sec` and `/min` of every unit in that window (QoS 0, no retry). The
+PS-Z001 fault-1 grid run (`ZaxModbus-PS/Doc/new-hardware/PS-Z001/grid-20261027/`) counts PS-Z001 seconds per hour from Influx:
+its hour 17:00-18:00 is expected below 3599 because of this restart (owner chose `now` knowing this).
+
+**Verified:** journal `Subscribed to zax_849DEC/#` at 17:34:02; Influx `zaxenergy` `power` `unit=PS-E002`: 81 points per field in
+the first ~90 s; Grafana `unit` options Unit_A, Unit_C, PS-Z001, PS-E002.
+
+**Undo:** restore the parser backup and restart `zax-parser`; re-post the dashboard backup (`POST /api/dashboards/db` with
+`overwrite: true`).

@@ -14,7 +14,8 @@ INFLUX_ORG    = "zax"
 INFLUX_BUCKET = "zaxenergy"
 
 UNITS = {"zax_E47730": "Unit_A", "zax_E482C0": "Unit_B", "zax_73DA28": "Unit_C", "zax_F07F8C": "Unit_D",
-         "zax_E49218": "PS-Z001"}   # PS-Z001: first new-hardware unit (NEW-BOX + S3-Zero), fw 1.2.x, 52 B min
+         "zax_E49218": "PS-Z001",   # PS-Z001: first new-hardware unit (NEW-BOX + S3-Zero), fw 1.2.x, 52 B min
+         "zax_849DEC": "PS-E002"}   # PS-E002: NEW-BOX + S3-ETH, fw 1.2.x (2026-10-27)
 PHASES = ["R", "S", "T"]
 
 influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
