@@ -219,6 +219,17 @@ strictly increasing (`max(time_ns, last + 1)`); until now the arrival time was w
 **Verified:** deployed file minus the token line = repo file; service active; journal: Connected, Subscribed to the 5 unit prefixes, no error in 70 s.
 **Not verified:** a real `ts = 0` point in InfluxDB (needs PS-Z001 running the 1.2.14 firmware: time-spec step 3). `ws` git checkout not pulled.
 
+## 2026-10-28 17:52 (EET) — temporary LAN page 8091 again, for the PS-E002 grid run (auto-stops after 20 h)
+
+**What:** the transient unit of 2026-10-23 (below) had stopped by its 5-day limit (state failed). `sudo systemctl reset-failed
+psz001-status`, then the same `systemd-run --unit=psz001-status ... python3 -m http.server 8091 --bind 192.168.20.11
+--directory /home/dan-linux/psz001-status` with `--property=RuntimeMaxSec=72000` (20 h, stops ~Thu 2026-10-29 13:52). Active
+17:52:53, `http://192.168.20.11:8091/` 200. Nothing else changed; no file under `/etc`.
+**Why:** owner 2026-10-28 "monitor the unit until tomorrow 8:00 and view hourly results on the workstation web page" (`go`):
+`soak_run --publish` of the PS-E002 grid run copies `index.html` there after each judged hour (page title still says PS-Z001,
+WISHLIST #95).
+**Undo:** `sudo systemctl stop psz001-status` (or wait for the 20 h).
+
 ## 2026-10-23 15:14 (EEST) — temporary LAN page for the PS-Z001 weekend runs (port 8091, auto-stops after 5 days)
 
 **What:** directory `/home/dan-linux/psz001-status/` created and a **transient** systemd unit `psz001-status.service` started
