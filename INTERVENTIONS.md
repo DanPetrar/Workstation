@@ -305,3 +305,13 @@ dashboards by itself (no parser-side or page edit needed beyond the zax-parser `
 
 **Undo:** re-post the dashboard backup (`POST /api/dashboards/db`, `overwrite: true`); copy `serve.py.bak-20261027-195007`
 (or `-194248` for the 19:42 state) over `serve.py` and `sudo systemctl restart cal_reports`.
+
+## 2026-10-29 19:11 (EET) — LAN page :8091 started again for the PS-E002 10H grid run (stops by itself ~Fri 2026-10-30 21:30)
+
+**What:** the transient unit of 2026-10-28 had stopped by its 20 h limit (state failed). `sudo systemctl reset-failed
+psz001-status`, then the same `systemd-run --unit=psz001-status --uid=dan-linux python3 -m http.server 8091 --bind 192.168.20.11
+--directory /home/dan-linux/psz001-status` with `--property=RuntimeMaxSec=94800` (26 h 20 min). Active 19:11:42,
+`http://192.168.20.11:8091/` 200. Nothing else changed; no file under `/etc`.
+**Why:** owner 2026-10-29 "can you add hourly reports on the web page?" (`go`): `soak_run --publish` of the PS-E002 run
+`ZaxModbus-PS/Doc/new-hardware/PS-E002/grid-eth10h-20261029/` copies the page after each judged hour (first ~21:01:30).
+**Undo:** `sudo systemctl stop psz001-status` (or wait for the 26 h).
