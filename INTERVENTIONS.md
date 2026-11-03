@@ -322,3 +322,8 @@ psz001-status`, then the same `systemd-run --unit=psz001-status --uid=dan-linux 
 `systemd-run --unit=psz001-status --uid=dan-linux python3 -m http.server 8091 --bind 192.168.20.11 --directory /home/dan-linux/psz001-status`
 with `--property=RuntimeMaxSec=108000` (30 h). Active 16:58:51, `http://192.168.20.11:8091/` 200. `index.html` replaced by the new run's page (the old run stays as `grid-eth10h-20261029.html`). Nothing else changed; no file under `/etc`.
 **Why:** owner 2026-10-31 "can you use workstation for web?" (`go`): `soak_run --publish` from f22, run `ZaxModbus-PS/Doc/new-hardware/PS-E002/grid-eth10h-20261031/`, copies the page after each judged hour (first ~19:01).
+
+## 2026-11-03 16:34 (EET) — LAN page :8091 started again for the PS-E002 row 7 rerun (stops by itself ~Wed 2026-11-04 22:34)
+
+**What:** same command as 2026-10-31 (reset-failed, `systemd-run` 30 h). Active 16:34:46, `http://192.168.20.11:8091/` 200. The 10-31 run's page was already kept as `grid-eth10h-20261031.html`; `index.html` is replaced by the new run's page at the first judged hour (~18:01). Nothing else changed; no file under `/etc`.
+**Why:** owner 2026-11-03 `page go`; run `ZaxModbus-PS/Doc/new-hardware/PS-E002/grid-eth10h-20261103/`.
