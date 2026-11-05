@@ -336,3 +336,12 @@ with `--property=RuntimeMaxSec=108000` (30 h). Active 16:58:51, `http://192.168.
 
 **What:** same command as 2026-10-31 (reset-failed, `systemd-run` 30 h). Active 16:34:46, `http://192.168.20.11:8091/` 200. The 10-31 run's page was already kept as `grid-eth10h-20261031.html`; `index.html` is replaced by the new run's page at the first judged hour (~18:01). Nothing else changed; no file under `/etc`.
 **Why:** owner 2026-11-03 `page go`; run `ZaxModbus-PS/Doc/new-hardware/PS-E002/grid-eth10h-20261103/`.
+
+## 2026-11-05 10:49 (EET) — temporary LAN page 8091 again, for the PS-E002 I4 24 h run (auto-stops after 30 h)
+
+**What:** the transient unit had stopped ~09:23 by its runtime limit (state failed, Result=timeout). `sudo systemctl reset-failed
+psz001-status`, then `sudo systemd-run --unit=psz001-status --property=RuntimeMaxSec=108000 --uid=dan-linux python3 -m http.server 8091
+--bind 192.168.20.11 --directory /home/dan-linux/psz001-status` (30 h, stops ~Fri 2026-11-06 16:49). Active, `http://192.168.20.11:8091/` 200.
+Nothing else changed; no file under `/etc`.
+**Why:** owner 2026-11-05 `publish`: the I4 run (`soak_run --publish`) copies `index.html` there after each judged hour.
+**Undo:** `sudo systemctl stop psz001-status` (or wait for the 30 h).
