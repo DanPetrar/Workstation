@@ -46,6 +46,7 @@ Role: **all permanent / production services.** Driven from the Pi via `ssh ws`.
 | `cal_collector.service` | Bench: subscribes **local** broker `cal_F07F8C/#` → SQLite `cal_data.db` | — | ✅ |
 | `cal_reports.service` | Bench report web server **+ session UI** (start/stop/report by DUT serial — EnergyCalibrator Phase E) | `:8080` | ✅ |
 | `cal-parser.service` | Bench: subscribes **local** broker `cal_F07F8C/#` → InfluxDB | — | ✅ |
+| `unitcat.service` | **Unit catalog** (new-hardware unit setup, plan step 2, 2026-11-10): JSON API over SQLite `/workspace/unit-catalog/catalog.db`; only this service opens the DB; names from one shared sequence; client `ZaxModbus-PS/tools/unitcat/unitcat.py` | `:8092` | ✅ |
 | `zax-bridge.service` | Disabled 2026-06-03 — see note below | local broker `zax`→`zax/json` | ❌ disabled |
 | `zax-influx.service` | Disabled 2026-06-03 — see note below | local broker `zax/json` → InfluxDB | ❌ disabled |
 
@@ -172,6 +173,7 @@ influxdb-client). The ZAX services use their own venv at
 | `cal_reports` | source `/workspace/projects/EnergyCalibrator/reports/serve.py`; serves `:8080` (PDF index + session UI; `sessions` table in `cal_data.db`) | `… restart cal_reports` | PDF/web + session reports from `cal_data.db` |
 | `cal-parser` | runs `/opt/cal-parser/cal_parser.py` (source tracked at `infrastructure/cal_parser.py`); broker `127.0.0.1` | `… restart cal-parser` | InfluxDB bucket `zaxenergy` |
 | `zax-parser` | runs `/opt/zax-parser/zax_parser.py`; broker `localhost` (source tracked at `infrastructure/zax_parser.py` — kept in sync with the deployed copy) | `… restart zax-parser` | InfluxDB bucket `zaxenergy` |
+| `unitcat` | `/etc/systemd/system/unitcat.service` runs `/usr/bin/python3 /workspace/projects/unitcat/server.py 8092` (stdlib only); env `UNITCAT_DB=/workspace/unit-catalog/catalog.db`; source tracked at `ZaxModbus-PS/tools/unitcat/` (copied by scp) | `… restart unitcat` | SQLite `/workspace/unit-catalog/catalog.db` |
 | `zax-bridge` / `zax-influx` | `/workspace/projects/mixed/ZaxEnergySurvey/collector/{bridge,influx_writer}.py` (disabled 2026-06-03) | — | — |
 
 **Scheduled tasks (WS, `dan-linux` crontab)** — `ssh ws crontab -l` is the authority for
@@ -183,6 +185,7 @@ mystery file on disk can be traced back in one look. Keep it in step with the cr
 | `00:05` daily | `/workspace/cal-data/ws_daily_report.sh` | EnergyCalibrator bench daily PDF report | `/workspace/cal-data/` |
 | `00:30` Mon–Sat | `prune.py --apply` | 10-day retention on the bench SQLite DB, or it grows without bound | `/workspace/cal-data/prune.log` |
 | `00:30` Sun | `prune.py --apply --vacuum` | Weekly variant — same prune, plus reclaims file space (VACUUM is too slow to run daily) | `/workspace/cal-data/prune.log` |
+| `03:00` daily | `/workspace/projects/unitcat/dump.py` | Text dump of the unit catalog (`iterdump`), 14 days kept; restore = `executescript` into an empty DB | `/workspace/unit-catalog/dump/`, log `/workspace/unit-catalog/dump.log` |
 | every 5 min | `infrastructure/zax_gap_watch.py` | Gap **detection**: finds holes in bench time-series in InfluxDB and records them as the `data_gap` measurement, so an outage is visible as data rather than as absence. **Bench units only, not the delivered fleet.** Watches **both** streams since 2026-09-01: `power` (1 Hz, stale >180 s) and `energy` (1/min, stale >300 s), tagged `stream=sec|min` on the `data_gap` point. Before that only `power` was watched, so an energy-only hole was invisible and therefore never recovered. | `infrastructure/zax_gap.log` |
 | every 15 min (:07,:22,:37,:52) | `infrastructure/zax_gap_backfill.py` | Gap **recovery**: for each non-recovered `data_gap`, pulls the range from the device's own `/api/export` and writes the missing seconds/minutes back with `source=buffer_backfill`. **Restored 2026-09-01 after being absent since the 2026-08-05 incident** — detection had been running without recovery for ~4 weeks, which looks covered and is not. Pulls are CHUNKED (240 s per request): a single wide pull blocks the device's `loop()`, and therefore its box-serial read, long enough to trip its 10 s comm-loss fault. Needs the venv interpreter for `influxdb_client`. | `infrastructure/zax_gap.log` |
 | hourly `:00` | `infrastructure/zax_errorlog_watch.py` (added 2026-08-26) | Flat-file archive of each unit's on-device error log. `/api/errors` is a small rotating buffer (~8% of LittleFS) that drops its oldest half when full; this fetches hourly and appends **only new lines**, giving unbounded local retention of a log the device itself cannot keep. | `infrastructure/errorlogs/<Unit>.log` (data), `infrastructure/zax_errorlog_watch.log` (run log) |

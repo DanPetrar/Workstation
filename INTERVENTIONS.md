@@ -351,3 +351,10 @@ Nothing else changed; no file under `/etc`.
 **What:** `sudo systemctl reset-failed psz001-status`, then `sudo systemd-run --unit=psz001-status --property=RuntimeMaxSec=36000 --uid=dan-linux python3 -m http.server 8091 --bind 192.168.20.11 --directory /home/dan-linux/psz001-status` (stops ~19:18). Active 09:18:13, `http://192.168.20.11:8091/` 200. `index.html` is replaced by the step A journal. Nothing else changed; no file under `/etc`.
 **Why:** owner `go` + `page` 2026-11-10: standing direction 2026-11-07 (live journal page for every test), run A1.
 **Undo:** `sudo systemctl stop psz001-status`.
+
+## 2026-11-10 15:45 (EET) — new service `unitcat` (unit catalog, :8092) + nightly dump cron
+
+**What:** created `/workspace/projects/unitcat/` (`schema.sql`, `server.py`, `dump.py`, copied from `ZaxModbus-PS/tools/unitcat/`) and `/workspace/unit-catalog/` (`catalog.db`, `dump/`); new unit file `/etc/systemd/system/unitcat.service` (User dan-linux, `/usr/bin/python3`, stdlib only, port 8092), `systemctl enable --now unitcat`; `dan-linux` crontab line `0 3 * * *` running `dump.py` (14 days kept). Registered PS-Z001, PS-E002 (state proto) and the stand-ins Unit-ETH00, Zero-4804. No other service or file changed.
+**Why:** owner `go` 2026-11-10 on the unit-setup plan step 2 card (`ZaxModbus-PS/Doc/unit-setup/unit-setup-plan-fable.md` §10, spec `unit-setup-spec.md`).
+**Checks:** self-check `test_unitcat.py` PASS on f22 and on the WS (Python 3.14); live: duplicate name 409, duplicate MAC 409, restart keeps 4 units, dump restored in memory with equal row counts.
+**Undo:** `sudo systemctl disable --now unitcat; sudo rm /etc/systemd/system/unitcat.service; sudo systemctl daemon-reload`; remove the crontab line; `/workspace/unit-catalog/` holds the data.
