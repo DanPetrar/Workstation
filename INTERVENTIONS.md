@@ -358,3 +358,10 @@ Nothing else changed; no file under `/etc`.
 **Why:** owner `go` 2026-11-10 on the unit-setup plan step 2 card (`ZaxModbus-PS/Doc/unit-setup/unit-setup-plan-fable.md` §10, spec `unit-setup-spec.md`).
 **Checks:** self-check `test_unitcat.py` PASS on f22 and on the WS (Python 3.14); live: duplicate name 409, duplicate MAC 409, restart keeps 4 units, dump restored in memory with equal row counts.
 **Undo:** `sudo systemctl disable --now unitcat; sudo rm /etc/systemd/system/unitcat.service; sudo systemctl daemon-reload`; remove the crontab line; `/workspace/unit-catalog/` holds the data.
+
+## 2026-11-10 19:19 (EET) — `unitcat` server.py updated to ZaxModbus-PS `4d656f9` (fix plan F9 + F10), service restarted
+
+**What:** `/workspace/projects/unitcat/server.py` (sha f463be91, 15:45) kept as `server.py.pre-F9-20261110`; new `server.py` (sha 3c292c33) from ZaxModbus-PS `4d656f9`. `systemctl stop unitcat`, `catalog.db` copied to `/workspace/unit-catalog/catalog.db.bak-20261110-pre-F9` (cmp equal), file replaced, `systemctl start unitcat`. `schema.sql`, `dump.py`, unit file and cron unchanged; no file under `/etc`.
+**Why:** owner `restart service` + `go` 2026-11-10: `set state=READY` refused, `/units/<n>/ready` only with a certificate (F9); 500 on any error, MAC form check, stand-in names not PS-xnnn (F10).
+**Checks:** active; `GET /units` same 4 units and states (PS-Z001 proto, PS-E002 proto, Unit-ETH00 flashed, Zero-4804 flashed); `set state=READY` on Zero-4804 400, `/ready` on Zero-4804 400 (no write; state flashed, events unchanged at 12).
+**Undo:** `cp -p server.py.pre-F9-20261110 server.py; sudo systemctl restart unitcat`.
