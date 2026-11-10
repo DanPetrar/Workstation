@@ -365,3 +365,7 @@ Nothing else changed; no file under `/etc`.
 **Why:** owner `restart service` + `go` 2026-11-10: `set state=READY` refused, `/units/<n>/ready` only with a certificate (F9); 500 on any error, MAC form check, stand-in names not PS-xnnn (F10).
 **Checks:** active; `GET /units` same 4 units and states (PS-Z001 proto, PS-E002 proto, Unit-ETH00 flashed, Zero-4804 flashed); `set state=READY` on Zero-4804 400, `/ready` on Zero-4804 400 (no write; state flashed, events unchanged at 12).
 **Undo:** `cp -p server.py.pre-F9-20261110 server.py; sudo systemctl restart unitcat`.
+
+## 2026-11-10 23:49 (EET) — temporary LAN page 8091 again, for unit setup step 5 (test-2 on PS-Z003; auto-stops after 10 h)
+
+**What:** `sudo systemctl reset-failed psz001-status`, then `sudo systemd-run --unit=psz001-status --property=RuntimeMaxSec=36000 --uid=dan-linux python3 -m http.server 8091 --bind 192.168.20.11 --directory /home/dan-linux/psz001-status` (stops ~09:49 on 11-11). Active 23:49:54, `http://192.168.20.11:8091/` 200. Owner `go` 2026-11-10. Nothing else changed; no file under `/etc`.
