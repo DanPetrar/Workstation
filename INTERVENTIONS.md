@@ -369,3 +369,13 @@ Nothing else changed; no file under `/etc`.
 ## 2026-11-10 23:49 (EET) — temporary LAN page 8091 again, for unit setup step 5 (test-2 on PS-Z003; auto-stops after 10 h)
 
 **What:** `sudo systemctl reset-failed psz001-status`, then `sudo systemd-run --unit=psz001-status --property=RuntimeMaxSec=36000 --uid=dan-linux python3 -m http.server 8091 --bind 192.168.20.11 --directory /home/dan-linux/psz001-status` (stops ~09:49 on 11-11). Active 23:49:54, `http://192.168.20.11:8091/` 200. Owner `go` 2026-11-10. Nothing else changed; no file under `/etc`.
+
+## 2026-11-11 00:58 (EET) — PS-Z003 added to zax-parser (owner `go`, unit setup test-2 precondition)
+
+**What:** `/opt/zax-parser/zax_parser.py`: one entry added to `UNITS` — `"zax_BD06F4": "PS-Z003"` — and `zax-parser.service`
+restarted at 00:58:07 (active). Backup: `zax_parser.py.bak-20261111-005807`. Repo source `infrastructure/zax_parser.py`: same
+change (deployed copy = repo except the InfluxDB token, checked by diff). Grafana `zax-power` not changed.
+
+**Why:** test-2 `influx_sec` on PS-Z003 (00:39 run) counted 0 SEC records in 10 min: topic `zax_BD06F4` was not in `UNITS`.
+
+**Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261111-005807 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
