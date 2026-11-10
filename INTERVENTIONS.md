@@ -345,3 +345,9 @@ psz001-status`, then `sudo systemd-run --unit=psz001-status --property=RuntimeMa
 Nothing else changed; no file under `/etc`.
 **Why:** owner 2026-11-05 `publish`: the I4 run (`soak_run --publish`) copies `index.html` there after each judged hour.
 **Undo:** `sudo systemctl stop psz001-status` (or wait for the 30 h).
+
+## 2026-11-10 09:18 (EET) — temporary LAN page 8091 again, for fix plan step A (auto-stops after 10 h)
+
+**What:** `sudo systemctl reset-failed psz001-status`, then `sudo systemd-run --unit=psz001-status --property=RuntimeMaxSec=36000 --uid=dan-linux python3 -m http.server 8091 --bind 192.168.20.11 --directory /home/dan-linux/psz001-status` (stops ~19:18). Active 09:18:13, `http://192.168.20.11:8091/` 200. `index.html` is replaced by the step A journal. Nothing else changed; no file under `/etc`.
+**Why:** owner `go` + `page` 2026-11-10: standing direction 2026-11-07 (live journal page for every test), run A1.
+**Undo:** `sudo systemctl stop psz001-status`.
