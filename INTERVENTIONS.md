@@ -389,3 +389,7 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **What:** `/opt/zax-parser/zax_parser.py`: `"zax_BD0B60": "PS-Z004"` added to `UNITS`, `zax-parser.service` restarted 12:59:23 (active). Backup: `zax_parser.py.bak-20261111-125923`. Repo `infrastructure/zax_parser.py`: same change (diff = the token line only). Grafana not changed.
 
 **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261111-125923 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+
+## 2026-11-11 14:50 (EET) — temporary LAN page 8091 extended to ~07:15 on 11-12 (owner: "page to continue until 7:00 tomorrow")
+
+**What:** `systemctl stop psz001-status`, then the same `systemd-run ... http.server 8091 --bind 192.168.20.11` with `RuntimeMaxSec=59090` (active 14:50:10, stops ~07:15 on 11-12). Nothing else changed; no file under `/etc`.
