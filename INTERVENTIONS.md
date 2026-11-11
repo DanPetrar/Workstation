@@ -383,3 +383,9 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 ## 2026-11-11 11:30 (EET) — temporary LAN page 8091 again, for unit setup human part on PS-Z003 (auto-stops after 10 h)
 
 **What:** same commands as 2026-11-10 23:49 (`reset-failed`, then `systemd-run --unit=psz001-status --property=RuntimeMaxSec=36000 ... http.server 8091 --bind 192.168.20.11`). Active 11:30:38, `http://192.168.20.11:8091/` 200, stops ~21:30. Owner `go` 2026-11-11. Nothing else changed; no file under `/etc`.
+
+## 2026-11-11 12:59 (EET) — PS-Z004 added to zax-parser (owner `go`, unit setup test-2 precondition)
+
+**What:** `/opt/zax-parser/zax_parser.py`: `"zax_BD0B60": "PS-Z004"` added to `UNITS`, `zax-parser.service` restarted 12:59:23 (active). Backup: `zax_parser.py.bak-20261111-125923`. Repo `infrastructure/zax_parser.py`: same change (diff = the token line only). Grafana not changed.
+
+**Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261111-125923 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
