@@ -379,3 +379,7 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **Why:** test-2 `influx_sec` on PS-Z003 (00:39 run) counted 0 SEC records in 10 min: topic `zax_BD06F4` was not in `UNITS`.
 
 **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261111-005807 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+
+## 2026-11-11 11:30 (EET) — temporary LAN page 8091 again, for unit setup human part on PS-Z003 (auto-stops after 10 h)
+
+**What:** same commands as 2026-11-10 23:49 (`reset-failed`, then `systemd-run --unit=psz001-status --property=RuntimeMaxSec=36000 ... http.server 8091 --bind 192.168.20.11`). Active 11:30:38, `http://192.168.20.11:8091/` 200, stops ~21:30. Owner `go` 2026-11-11. Nothing else changed; no file under `/etc`.
