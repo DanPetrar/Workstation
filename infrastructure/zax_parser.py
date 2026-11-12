@@ -18,7 +18,8 @@ UNITS = {"zax_E47730": "Unit_A", "zax_E482C0": "Unit_B", "zax_73DA28": "Unit_C",
          "zax_849DEC": "PS-E002",   # PS-E002: NEW-BOX + S3-ETH, fw 1.2.x (2026-10-27)
          "zax_BD06F4": "PS-Z003",   # PS-Z003: unit setup, added 2026-11-11
          "zax_BD0B60": "PS-Z004",   # PS-Z004: unit setup, added 2026-11-11
-         "zax_0BE450": "PS-E000"}   # PS-E000 (ex Unit-ETH00): spare and test board, added 2026-11-11
+         "zax_0BE450": "PS-E000",   # PS-E000 (ex Unit-ETH00): spare and test board, added 2026-11-11
+         "zax_BDBF88": "PS-E005"}   # PS-E005: unit setup, added 2026-11-12
 PHASES = ["R", "S", "T"]
 
 influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)

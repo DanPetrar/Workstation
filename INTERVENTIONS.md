@@ -399,3 +399,9 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **What:** `/opt/zax-parser/zax_parser.py`: `"zax_0BE450": "PS-E000"` (ex Unit-ETH00) added to `UNITS`, `zax-parser.service` restarted 18:44:55 (active). Backup: `zax_parser.py.bak-20261111-184455`. Repo `infrastructure/zax_parser.py`: same change (diff = the token line only). Grafana not changed.
 
 **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261111-184455 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+
+## 2026-11-12 12:34 (EET) — PS-E005 added to zax-parser (owner `go`, unit setup test-2 precondition)
+
+**What:** `/opt/zax-parser/zax_parser.py`: `"zax_BDBF88": "PS-E005"` added to `UNITS`, `zax-parser.service` restarted 12:34:22 (active). Backup: `zax_parser.py.bak-20261112-123419`. Repo `infrastructure/zax_parser.py`: same change (diff = the token line only). Grafana not changed. Check 12:36: PS-E005 120 of 120 SEC per phase in 2 min.
+
+**Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261112-123419 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
