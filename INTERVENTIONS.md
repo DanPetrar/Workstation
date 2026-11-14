@@ -405,3 +405,9 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **What:** `/opt/zax-parser/zax_parser.py`: `"zax_BDBF88": "PS-E005"` added to `UNITS`, `zax-parser.service` restarted 12:34:22 (active). Backup: `zax_parser.py.bak-20261112-123419`. Repo `infrastructure/zax_parser.py`: same change (diff = the token line only). Grafana not changed. Check 12:36: PS-E005 120 of 120 SEC per phase in 2 min.
 
 **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261112-123419 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+
+## 2026-11-14 21:18 (EET) — docs/ with two PDFs on the ws:8091 page server (owner `yes`, Second Futro Fable files)
+
+**What:** new folder `/home/dan-linux/psz001-status/docs/` with `second-futro-usage-fable-20261114.pdf` and `...-part2.pdf`; root `index.html` republished by `zaxtest.journal` from `ZaxModbus-PS/Doc/new-hardware/Zero-4804/journal.md` (commit 2f5bab7), one link line added above the list. Old root page saved on f22 (scratchpad, `index.html.bak-20261114`).
+
+**Rollback:** remove the link line from `journal.md`, republish (`cd ZaxModbus-PS/tools && python3 -B -m zaxtest.journal ../Doc/new-hardware/Zero-4804/journal.md`), `rm -r /home/dan-linux/psz001-status/docs` on ws.
