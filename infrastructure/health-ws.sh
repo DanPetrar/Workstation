@@ -18,7 +18,7 @@ bad()  { printf 'FAIL  %s\n' "$1"; fails=$((fails+1)); }
 echo "== Workstation health ($(hostname), $(date '+%Y-%m-%d %H:%M')) =="
 
 # Core permanent services (dormant zax-bridge/zax-influx intentionally excluded)
-for svc in mosquitto influxdb grafana-server zax-parser cal_collector cal_reports cal-parser; do
+for svc in mosquitto influxdb grafana-server zax-parser cal_collector cal_reports cal-parser zmon-parser; do
   if systemctl is-active --quiet "$svc"; then ok "$svc active"; else bad "$svc NOT active"; fi
 done
 

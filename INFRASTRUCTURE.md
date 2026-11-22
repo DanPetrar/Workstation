@@ -46,6 +46,7 @@ Role: **all permanent / production services.** Driven from the Pi via `ssh ws`.
 | `cal_collector.service` | Bench: subscribes **local** broker `cal_F07F8C/#` → SQLite `cal_data.db` | — | ✅ |
 | `cal_reports.service` | Bench report web server **+ session UI** (start/stop/report by DUT serial — EnergyCalibrator Phase E) | `:8080` | ✅ |
 | `cal-parser.service` | Bench: subscribes **local** broker `cal_F07F8C/#` → InfluxDB | — | ✅ |
+| `zmon-parser.service` | **ZMON prototype 1** (ZAX-ESP-Multisensor, 2026-11-22): subscribes **local** broker `+/+`, keeps `ZMON-XXXXXX/<sensor>` with a plain-number payload -> InfluxDB bucket `zmon` (measurement `zmon`, tags `unit`, `sensor`, field `value`); Grafana dashboard `zmon-proto1`, datasource `ZMON-InfluxDB` | — | ✅ |
 | `unitcat.service` | **Unit catalog** (new-hardware unit setup, plan step 2, 2026-11-10): JSON API over SQLite `/workspace/unit-catalog/catalog.db`; only this service opens the DB; names from one shared sequence; client `ZaxModbus-PS/tools/unitcat/unitcat.py` | `:8092` | ✅ |
 | `zax-bridge.service` | Disabled 2026-06-03 — see note below | local broker `zax`→`zax/json` | ❌ disabled |
 | `zax-influx.service` | Disabled 2026-06-03 — see note below | local broker `zax/json` → InfluxDB | ❌ disabled |
@@ -173,6 +174,7 @@ influxdb-client). The ZAX services use their own venv at
 | `cal_reports` | source `/workspace/projects/EnergyCalibrator/reports/serve.py`; serves `:8080` (PDF index + session UI; `sessions` table in `cal_data.db`) | `… restart cal_reports` | PDF/web + session reports from `cal_data.db` |
 | `cal-parser` | runs `/opt/cal-parser/cal_parser.py` (source tracked at `infrastructure/cal_parser.py`); broker `127.0.0.1` | `… restart cal-parser` | InfluxDB bucket `zaxenergy` |
 | `zax-parser` | runs `/opt/zax-parser/zax_parser.py`; broker `localhost` (source tracked at `infrastructure/zax_parser.py` — kept in sync with the deployed copy) | `… restart zax-parser` | InfluxDB bucket `zaxenergy` |
+| `zmon-parser` | `/etc/systemd/system/zmon-parser.service` runs `/opt/zmon-parser/zmon_parser.py` (EnergyCalibrator venv; source tracked at `infrastructure/zmon_parser.py` and in the ZAX-ESP-Multisensor repo `server/`); token (write, bucket `zmon` only) in `/etc/zmon-parser.env` mode 600; Grafana setup script `infrastructure/grafana_zmon.py`; filters and counters: see the script header | `… restart zmon-parser` | InfluxDB bucket `zmon` (read token only inside the Grafana datasource) |
 | `unitcat` | `/etc/systemd/system/unitcat.service` runs `/usr/bin/python3 /workspace/projects/unitcat/server.py 8092` (stdlib only); env `UNITCAT_DB=/workspace/unit-catalog/catalog.db`; source tracked at `ZaxModbus-PS/tools/unitcat/` (copied by scp) | `… restart unitcat` | SQLite `/workspace/unit-catalog/catalog.db` |
 | `zax-bridge` / `zax-influx` | `/workspace/projects/mixed/ZaxEnergySurvey/collector/{bridge,influx_writer}.py` (disabled 2026-06-03) | — | — |
 
