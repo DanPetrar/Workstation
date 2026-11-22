@@ -427,3 +427,11 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **Why:** the owner's main entry is `192.168.20.11:8080/zax`; the new project needs a tab there (owner: "add here a new tab or create 8080/monitor"; label chosen by the owner: Multisensor). Opus opinions 2026-11-22: edit `serve.py` (all other ways need the same edit and restart).
 
 **Rollback:** `cd /workspace/projects/EnergyCalibrator/reports && cp -p serve.py.bak-20261122-131617 serve.py && sudo systemctl restart cal_reports`, then check `/` and `/zax`. This also restores the state of the earlier sessions exactly.
+
+## 2026-11-22 15:25 (EET) — simulated data deleted from InfluxDB bucket `zmon` (ZAX-ESP-Multisensor, plan S5)
+
+**What:** `influx delete -o zax --bucket zmon --start 2026-11-22T10:00:00Z --stop 2026-11-22T12:00:00Z` (3412 points of the simulated sensors of `ZMON-E4C2C8`, 10:22:16Z to 11:51:39Z). Before: the same range exported to a CSV on f22 `~/zmon-backup/zmon-sim-20261122.csv` (sha256 05f6a205...0dd081, 3417 lines, not committed). After: that range returns 0 points; the real-sensor data from 13:12Z on (228 points before, 236 after, still growing) is untouched.
+
+**Why:** owner's word 2026-11-22 ("yes delete simulated data"); the real sensors replaced the simulation at plan step 11.
+
+**Rollback:** the CSV is the backup; a restore is a write of its rows (annotated CSV, `influx write --format csv`), only on the owner's word.
