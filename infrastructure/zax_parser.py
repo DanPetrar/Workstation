@@ -19,7 +19,8 @@ UNITS = {"zax_E47730": "Unit_A", "zax_E482C0": "Unit_B", "zax_73DA28": "Unit_C",
          "zax_BD06F4": "PS-Z003",   # PS-Z003: unit setup, added 2026-11-11
          "zax_BD0B60": "PS-Z004",   # PS-Z004: unit setup, added 2026-11-11
          "zax_0BE450": "PS-E000",   # PS-E000 (ex Unit-ETH00): spare and test board, added 2026-11-11
-         "zax_BDBF88": "PS-E005"}   # PS-E005: unit setup, added 2026-11-12
+         "zax_BDBF88": "PS-E005",   # PS-E005: unit setup, added 2026-11-12
+         "zax_ABB3F4": "PS-E006"}   # PS-E006: unit setup, added 2026-11-19
 PHASES = ["R", "S", "T"]
 
 influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
@@ -103,8 +104,12 @@ def decode_min(payload):
         f = struct.unpack('<I 3f 3f', payload)
         return (f[0], f[1:4], f[4:7], None, None) if ts_ok(f[0]) else None
     if n == MIN_LEN_V2:
-        f = struct.unpack('<I 3f 3f 3f 3f', payload)
-        return (f[0], f[1:4], f[4:7], f[7:10], f[10:13]) if ts_ok(f[0]) else None
+        # fw 1.3.x (owner E1 2026-11-23): uint32 Wh/varh; written as kWh/kVArh float
+        # so the Influx field type and names stay. 52 B comes only from new hardware
+        # (old boards are 1.1.x, 28 B); a 1.2.x float record is no longer decoded.
+        t, *w = struct.unpack('<I 12I', payload)
+        k = [x / 1000.0 for x in w]
+        return (t, k[0:3], k[3:6], k[6:9], k[9:12]) if ts_ok(t) else None
     return None
 
 
