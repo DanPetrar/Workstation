@@ -435,3 +435,17 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **Why:** owner's word 2026-11-22 ("yes delete simulated data"); the real sensors replaced the simulation at plan step 11.
 
 **Rollback:** the CSV is the backup; a restore is a write of its rows (annotated CSV, `influx write --format csv`), only on the owner's word.
+
+## 2026-11-19 17:32 (EET) — PS-E006 added to zax-parser (owner `deploy`, unit setup test-2 precondition)
+
+**What:** `/opt/zax-parser/zax_parser.py`: `"zax_ABB3F4": "PS-E006"` added to `UNITS`, `zax-parser.service` restarted 17:32:05 (active, subscribed to `zax_ABB3F4/#`). Backup: `zax_parser.py.bak-20261119-173204`. Repo `infrastructure/zax_parser.py`: same change (diff = the InfluxDB token line only).
+
+**Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261119-173204 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+
+## 2026-11-23 19:56 (EET) — zax-parser: 52 B /min decoded as uint32 Wh (ZaxModbus-PS fw 1.3.1, E1; owner `go` on the PS-E002 1.3.1 run card)
+
+**What:** `/opt/zax-parser/zax_parser.py` = repo `infrastructure/zax_parser.py` (commit d6f9152) with the deployed InfluxDB token line kept; `zax-parser.service` restarted 19:56:21 (active, 0 restarts). Backup: `zax_parser.py.bak-20261123-195621`. Fields and types unchanged (kWh float = Wh / 1000); 28 B (1.1.x) path unchanged. Check: PS-E002 (fw 1.3.1) R `kwh` = 20000.001 in `zaxenergy` at 17:57:01Z, no parser error lines.
+
+**Why:** fw 1.3.1 sends the 12 MIN energy counters as uint32 Wh in the same 52 B; the old decode would write wrong numbers (owner decision `all`: parsers decode only uint32, units go to 1.3.1 first). A new-hardware unit still on 1.2.x now gets wrong energy values in `zaxenergy`.
+
+**Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261123-195621 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
