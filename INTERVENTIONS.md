@@ -449,3 +449,11 @@ change (deployed copy = repo except the InfluxDB token, checked by diff). Grafan
 **Why:** fw 1.3.1 sends the 12 MIN energy counters as uint32 Wh in the same 52 B; the old decode would write wrong numbers (owner decision `all`: parsers decode only uint32, units go to 1.3.1 first). A new-hardware unit still on 1.2.x now gets wrong energy values in `zaxenergy`.
 
 **Rollback:** `sudo cp /opt/zax-parser/zax_parser.py.bak-20261123-195621 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.
+
+## 2026-11-27 18:22 (EET) — zax-parser: unit names from the unit catalog, `+/sec` and `+/min` (owner "we must prevent this for all new units", `go`)
+
+**What:** `/opt/zax-parser/zax_parser.py`: subscribes `+/sec` and `+/min`; the unit name is taken from `UNITS` first, then from the unit catalog `http://localhost:8092/units` (`mqtt_topic` -> `name`), read at start and again when an unknown prefix arrives (at most once per 60 s); unknown prefixes are ignored with one log line. `systemctl restart zax-parser` 18:22:40; log `[CATALOG] 7 units`, `Subscribed to +/sec`, `+/min`. Check: 90 s later PS-Z007 90/90/90, PS-E002 90/90/90, Unit_B 88/88/88 SEC per phase in `zaxenergy`. The repo copy `infrastructure/zax_parser.py` gets the same code (its own token line kept).
+
+**Why:** PS-Z007 (topic `zax_BD1B80`) wrote nothing to InfluxDB because it was not in the fixed `UNITS` list (ZaxModbus-PS errors-history 2026-11-27); each new unit needed a hand edit.
+
+**Rollback:** `cp /opt/zax-parser/zax_parser.py.bak-20261127-182240 /opt/zax-parser/zax_parser.py && sudo systemctl restart zax-parser`.

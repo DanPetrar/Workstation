@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import json
 import struct
 import time
+import urllib.request
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -21,6 +23,9 @@ UNITS = {"zax_E47730": "Unit_A", "zax_E482C0": "Unit_B", "zax_73DA28": "Unit_C",
          "zax_0BE450": "PS-E000",   # PS-E000 (ex Unit-ETH00): spare and test board, added 2026-11-11
          "zax_BDBF88": "PS-E005",   # PS-E005: unit setup, added 2026-11-12
          "zax_ABB3F4": "PS-E006"}   # PS-E006: unit setup, added 2026-11-19
+# Units not in UNITS come from the unit catalog service on this machine (UNITS wins).
+CATALOG_URL = "http://localhost:8092/units"
+CATALOG_REFETCH_S = 60
 PHASES = ["R", "S", "T"]
 
 influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
@@ -154,13 +159,50 @@ def handle_min(unit_name, payload):
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record="\n".join(points))
 
 
+def fetch_catalog():
+    with urllib.request.urlopen(CATALOG_URL, timeout=5) as r:
+        units = json.load(r)
+    return {u["mqtt_topic"]: u["name"] for u in units if u.get("mqtt_topic")}
+
+
+_catalog = {}
+_catalog_try = None      # time of the last fetch attempt, good or failed
+_ignored = set()
+
+
+def refresh_catalog(now=time.time, fetch=fetch_catalog):
+    global _catalog, _catalog_try
+    _catalog_try = now()     # a failed fetch also counts, so a down catalog is not hit per message
+    try:
+        _catalog = fetch()
+        print(f"[CATALOG] {len(_catalog)} units", flush=True)
+    except Exception as e:
+        print(f"[CATALOG] fetch failed: {type(e).__name__}", flush=True)
+
+
+def unit_for(prefix, now=time.time, fetch=fetch_catalog):
+    """Unit name for a topic prefix, or None. UNITS wins over the catalog."""
+    name = UNITS.get(prefix) or _catalog.get(prefix)
+    if name:
+        return name
+    if _catalog_try is None or now() - _catalog_try >= CATALOG_REFETCH_S:
+        refresh_catalog(now, fetch)
+        name = _catalog.get(prefix)
+        if name:
+            return name
+    if prefix not in _ignored:
+        _ignored.add(prefix)
+        print(f"[PARSER] ignored topic prefix {prefix} (not in UNITS or catalog)", flush=True)
+    return None
+
+
 def on_message(client, userdata, msg):
     topic_parts = msg.topic.split("/")
     if len(topic_parts) < 2:
         return
     prefix = topic_parts[0]
     mtype  = topic_parts[1]
-    unit_name = UNITS.get(prefix)
+    unit_name = unit_for(prefix)
     if not unit_name:
         return
     try:
@@ -174,15 +216,16 @@ def on_message(client, userdata, msg):
 
 def on_connect(client, userdata, flags, rc, properties=None):
     print(f"[MQTT] Connected (rc={rc})")
-    for prefix in UNITS:
-        client.subscribe(f"{prefix}/#")
-        print(f"[MQTT] Subscribed to {prefix}/#")
+    for sub in ("+/sec", "+/min"):
+        client.subscribe(sub)
+        print(f"[MQTT] Subscribed to {sub}")
 
 
 # Guarded so the module can be imported for its decode functions without
 # constructing a client, connecting, or blocking in loop_forever(). The service
 # runs this file as a script, so production is unchanged.
 if __name__ == "__main__":
+    refresh_catalog()
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="zax-parser")
     client.on_connect = on_connect
     client.on_message = on_message
